@@ -1,5 +1,5 @@
-const mapCellsInstences = 1;
-const mapCellsMovement = 16 * mapCellsInstences;
+const mapCellsInstances = 1;
+const mapCellsMovement = 16 * mapCellsInstances;
 const mapCellsPaint = 3;
 const mapCellsSize = mapCellsMovement * mapCellsPaint;
 const mapCellsRange = mapCellsSize - 1;
