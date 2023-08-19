@@ -1,7 +1,9 @@
-const mapCellsMovement = 16;
+const mapCellsInstences = 1;
+const mapCellsMovement = 16 * mapCellsInstences;
 const mapCellsPaint = 3;
 const mapCellsSize = mapCellsMovement * mapCellsPaint;
 const mapCellsRange = mapCellsSize - 1;
+const mapCellsAmplitudeFactor = 1;
 
 append(
   'body',
@@ -14,7 +16,6 @@ append(
         font-family: monospace;
       }
       .matrix {
-        margin: auto;
         background: gray;
       }
       .matrix-cell {
@@ -25,7 +26,7 @@ append(
 
     <style class="css-controller"></style>
 
-    <div class="in matrix">
+    <div class="fix center matrix">
       <div class="in matrix-render"></div>
     </div> `
 );
@@ -53,21 +54,22 @@ const matrixRender = () =>
 
 matrixRender();
 
-const cssControllerInstance = (screenDim) =>
+const cssControllerInstance = (screenDim) => {
+  const matrixFactor = screenDim.minValue * mapCellsAmplitudeFactor;
   htmls(
     '.css-controller',
     css`
       .matrix {
-        width: ${screenDim.minValue}px;
-        height: ${screenDim.minValue}px;
+        width: ${matrixFactor}px;
+        height: ${matrixFactor}px;
       }
       .matrix-cell {
-        width: ${screenDim.minValue / mapCellsSize}px;
-        height: ${screenDim.minValue / mapCellsSize}px;
+        width: ${matrixFactor / mapCellsSize}px;
+        height: ${matrixFactor / mapCellsSize}px;
       }
     `
   );
-
+};
 (function () {
   let lastScreenDimMin;
   let lastScreenDimMax;
