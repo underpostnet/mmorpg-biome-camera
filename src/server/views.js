@@ -6,8 +6,7 @@ import { commonFunctions } from '../../core/server/util/common.js';
 import { srcFormatted, pathViewFormatted } from '../../core/server/util/formatted.js';
 
 // view
-import { TestView } from '../client/views/test.js';
-import { HomeView } from '../client/views/home.js';
+import { IndexView } from '../client/views/index.js';
 
 const views = (app) => {
   const publicDirectory = './public';
@@ -24,7 +23,7 @@ const views = (app) => {
   let viewRender;
   eval(srcFormatted(fs.readFileSync('./src/client/view-render.js', 'utf8'), 'utf8'));
 
-  [TestView, HomeView].map((view) => {
+  [IndexView].map((view) => {
     console.log('render', view);
     const appSrc = srcFormatted(`
        ${baseClientJS}
