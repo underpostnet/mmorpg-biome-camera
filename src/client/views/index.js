@@ -1,5 +1,6 @@
 const IndexView = {
-  path: '/',
+  path: '/home',
+  node_modules: ['./node_modules/pixi.js/dist/pixi.min.js'],
   componets: ['index'],
   title: 'C Y B E R I A',
 };

@@ -26,7 +26,13 @@ const views = async (app) => {
   eval(srcFormatted(fs.readFileSync('./src/client/render.js', 'utf8'), 'utf8'));
 
   [IndexView].map((view) => {
-    console.log('render', view);
+    console.log(view);
+    const jsDists = [];
+    view.node_modules.map((node_module) => {
+      const dist = `/dist/${node_module.split('/').pop()}`;
+      jsDists.push(dist);
+      fs.copyFileSync(node_module, `${publicDirectory}${dist}`);
+    });
     const appSrc = srcFormatted(`
        ${baseClientJS}
       ${view.componets.map((component) => fs.readFileSync(`./src/client/components/${component}.js`, 'utf8')).join('')}
@@ -36,7 +42,7 @@ const views = async (app) => {
     fs.writeFileSync(`${publicDirectory}${pathViewFormatted(view.path)}app.js`, appSrc, 'utf8');
     fs.writeFileSync(
       `${publicDirectory}${pathViewFormatted(view.path)}index.html`,
-      viewRender({ title: view.title }),
+      viewRender({ title: view.title, jsDists }),
       'utf8'
     );
   });
