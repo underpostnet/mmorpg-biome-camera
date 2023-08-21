@@ -39,10 +39,12 @@ append(
       .matrix-render {
         top: 0px;
         left: 0px;
+        display: none;
       }
       .matrix-render-movement {
         top: 0px;
         left: 0px;
+        display: none;
       }
     </style>
 
@@ -102,6 +104,32 @@ const matrixRender = () => {
 
 matrixRender();
 
+const components = {
+  background: {
+    color: 'red',
+    width: () => matrixCellsMovementSize,
+    height: () => matrixCellsMovementSize,
+    x: (element) => element.x * matrixCellsMovementSize,
+    y: (element) => element.y * matrixCellsMovementSize,
+  },
+  'eye-right': {
+    color: 'blue',
+    width: () => matrixCellsMovementSize * 0.25,
+    height: () => matrixCellsMovementSize * 0.25,
+    x: (element) => element.x * matrixCellsMovementSize + matrixCellsMovementSize * 0.2,
+    y: (element) => element.y * matrixCellsMovementSize + matrixCellsMovementSize * 0.2,
+  },
+  'eye-left': {
+    color: 'blue',
+    width: () => matrixCellsMovementSize * 0.25,
+    height: () => matrixCellsMovementSize * 0.25,
+    x: (element) =>
+      element.x * matrixCellsMovementSize +
+      (matrixCellsMovementSize - matrixCellsMovementSize * 0.2 - matrixCellsMovementSize * 0.25),
+    y: (element) => element.y * matrixCellsMovementSize + matrixCellsMovementSize * 0.2,
+  },
+};
+
 const elements = {
   user: [
     {
@@ -109,16 +137,7 @@ const elements = {
       x: 1,
       y: 1,
       vel: 0.3,
-      components: [
-        {
-          id: 'background',
-          color: 'red',
-          width: () => matrixCellsMovementSize,
-          height: () => matrixCellsMovementSize,
-          x: (element) => element.x * matrixCellsMovementSize,
-          y: (element) => element.y * matrixCellsMovementSize,
-        },
-      ],
+      components: ['background', 'eye-right', 'eye-left'],
     },
   ],
 };
@@ -127,11 +146,11 @@ console.log('elements', elements);
 
 const updateElement = (element) => {
   element.components.map((component) => {
-    if (s(`.${element.id}-${component.id}`)) {
-      s(`.${element.id}-${component.id}`).setAttribute('width', component.width());
-      s(`.${element.id}-${component.id}`).setAttribute('height', component.height());
-      s(`.${element.id}-${component.id}`).setAttribute('x', component.x(element));
-      s(`.${element.id}-${component.id}`).setAttribute('y', component.y(element));
+    if (s(`.${element.id}-${component}`)) {
+      s(`.${element.id}-${component}`).setAttribute('width', components[component].width());
+      s(`.${element.id}-${component}`).setAttribute('height', components[component].height());
+      s(`.${element.id}-${component}`).setAttribute('x', components[component].x(element));
+      s(`.${element.id}-${component}`).setAttribute('y', components[component].y(element));
     }
   });
 };
@@ -178,13 +197,13 @@ const renderControllerInstance = (screenDim) => {
           '.matrix-cell-svg',
           html`
             <rect
-              class="${element.id}-${component.id}"
-              width="${component.width()}"
-              height="${component.height()}"
+              class="${element.id}-${component}"
+              width="${components[component].width()}"
+              height="${components[component].height()}"
               stroke-linecap="square"
-              x="${component.x(element)}"
-              y="${component.y(element)}"
-              style="fill: red"
+              x="${components[component].x(element)}"
+              y="${components[component].y(element)}"
+              style="fill: ${components[component].color}"
             />
           `
         );
