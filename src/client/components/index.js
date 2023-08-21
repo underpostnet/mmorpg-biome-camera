@@ -1,10 +1,10 @@
-const matrixCellsInstances = 1;
+const matrixCellsInstances = 3;
 const matrixCellsMovement = 16 * matrixCellsInstances;
 const matrixCellsMovementRange = matrixCellsMovement - 1;
 const matrixCellsPaint = 3;
 const matrixCellsSize = matrixCellsMovement * matrixCellsPaint;
 const matrixCellsRange = matrixCellsSize - 1;
-const matrixCellsAmplitudeFactor = 1;
+const matrixCellsAmplitudeFactor = 4;
 let matrixCellsWidth;
 let matrixCellsMovementSize;
 let matrixWidth;
@@ -39,18 +39,16 @@ append(
       .matrix-render {
         top: 0px;
         left: 0px;
-        display: none;
       }
       .matrix-render-movement {
         top: 0px;
         left: 0px;
-        display: none;
       }
     </style>
 
     <style class="css-controller"></style>
 
-    <div class="fix center matrix">
+    <div class="fix matrix">
       <svg class="abs matrix-cell-svg" version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>
       <div class="abs matrix-render"></div>
       <div class="abs matrix-render-movement"></div>
@@ -58,6 +56,7 @@ append(
 );
 
 const matrixRender = () => {
+  return;
   htmls(
     '.matrix-render',
     html`
@@ -142,7 +141,7 @@ const elements = {
     },
   ],
   bot: () =>
-    range(0, 10).map(() => {
+    range(0, 100).map(() => {
       return {
         id: `bot${s4()}`,
         x: random(0, matrixCellsMovementRange),
@@ -153,6 +152,16 @@ const elements = {
           { id: 'eye-right', color: 'black' },
           { id: 'eye-left', color: 'black' },
         ],
+      };
+    }),
+  building: () =>
+    range(0, 10).map(() => {
+      return {
+        id: `building${s4()}`,
+        x: random(0, matrixCellsMovementRange),
+        y: random(0, matrixCellsMovementRange),
+        vel: 0.1,
+        components: [{ id: 'background', color: 'black' }],
       };
     }),
 };
@@ -170,8 +179,8 @@ const updateElement = (element) => {
   });
 };
 
-const renderControllerInstance = (screenDim) => {
-  matrixWidth = screenDim.minValue * matrixCellsAmplitudeFactor;
+const renderControllerInstance = () => {
+  matrixWidth = lastScreenDim.minValue * matrixCellsAmplitudeFactor;
   matrixCellsWidth = matrixWidth / matrixCellsSize;
   matrixCellsMovementSize = matrixCellsWidth * matrixCellsPaint;
   htmls(
@@ -191,8 +200,8 @@ const renderControllerInstance = (screenDim) => {
       }
     `
   );
-  s('.matrix-cell-svg').setAttribute('width', screenDim.minValue);
-  s('.matrix-cell-svg').setAttribute('height', screenDim.minValue);
+  s('.matrix-cell-svg').setAttribute('width', matrixWidth);
+  s('.matrix-cell-svg').setAttribute('height', matrixWidth);
   Object.keys(elements).map((type) => {
     if (typeof elements[type] === 'function') elements[type] = elements[type]();
     elements[type].map((element) => updateElement(element));
@@ -203,7 +212,7 @@ const renderControllerInstance = (screenDim) => {
     const screenDim = dimState();
     if (lastScreenDim.minValue !== screenDim.minValue || lastScreenDim.maxValue !== screenDim.maxValue) {
       lastScreenDim = newInstance(screenDim);
-      renderControllerInstance(screenDim);
+      renderControllerInstance();
     }
   };
   renderController();
@@ -233,13 +242,6 @@ const renderControllerInstance = (screenDim) => {
     renderController();
     Object.keys(elements).map((type) => {
       elements[type].map((element, i) => {
-        if (type === 'user' && i === 0) {
-          if (window.activeKey['ArrowRight']) elements[type][i].x += element.vel;
-          if (window.activeKey['ArrowLeft']) elements[type][i].x -= element.vel;
-          if (window.activeKey['ArrowDown']) elements[type][i].y += element.vel;
-          if (window.activeKey['ArrowUp']) elements[type][i].y -= element.vel;
-        }
-
         switch (type) {
           case 'bot':
             switch (random(0, 3)) {
@@ -259,6 +261,53 @@ const renderControllerInstance = (screenDim) => {
                 break;
             }
             break;
+          case 'user':
+            switch (i) {
+              case 0:
+                if (window.activeKey['ArrowRight']) elements[type][i].x += element.vel;
+                if (window.activeKey['ArrowLeft']) elements[type][i].x -= element.vel;
+                if (window.activeKey['ArrowDown']) elements[type][i].y += element.vel;
+                if (window.activeKey['ArrowUp']) elements[type][i].y -= element.vel;
+
+                const factorScreenAmplitude = 1 / matrixCellsAmplitudeFactor;
+                const factorScreen = (lastScreenDim.maxValue / lastScreenDim.minValue) * factorScreenAmplitude;
+                const factorScreenMin = (100 * (matrixCellsWidth / 1)) / lastScreenDim.minValue;
+                const factorScreenMax = (100 * (matrixCellsWidth / 1)) / lastScreenDim.maxValue;
+
+                if (lastScreenDim.minType === 'height') {
+                  s('.matrix').style.left = `${
+                    50 -
+                    factorScreenMax -
+                    factorScreenMax / 2 -
+                    (elements[type][i].x * 100) / matrixCellsMovement / factorScreen
+                  }%`;
+                  s('.matrix').style.top = `${
+                    50 -
+                    factorScreenMin -
+                    factorScreenMin / 2 -
+                    (elements[type][i].y * 100) / matrixCellsMovement / factorScreenAmplitude
+                  }%`;
+                } else {
+                  s('.matrix').style.left = `${
+                    50 -
+                    factorScreenMin -
+                    factorScreenMin / 2 -
+                    (elements[type][i].x * 100) / matrixCellsMovement / factorScreenAmplitude
+                  }%`;
+                  s('.matrix').style.top = `${
+                    50 -
+                    factorScreenMax -
+                    factorScreenMax / 2 -
+                    (elements[type][i].y * 100) / matrixCellsMovement / factorScreen
+                  }%`;
+                }
+
+                break;
+
+              default:
+                break;
+            }
+            break;
           default:
             break;
         }
@@ -272,3 +321,9 @@ const renderControllerInstance = (screenDim) => {
     });
   }, 15);
 })();
+
+// center test
+// append(
+//   'body',
+//   html` <div class="fix center" style="width: 20px; height: 20px; background: yellow; border: 2px solid black;"></div> `
+// );
