@@ -103,18 +103,37 @@ const matrixRender = () => {
 matrixRender();
 
 const elements = {
-  user: [{ id: `user${s4()}`, x: 1, y: 1, vel: 0.3 }],
+  user: [
+    {
+      id: `user${s4()}`,
+      x: 1,
+      y: 1,
+      vel: 0.3,
+      components: [
+        {
+          id: 'background',
+          color: 'red',
+          width: () => matrixCellsMovementSize,
+          height: () => matrixCellsMovementSize,
+          x: (element) => element.x * matrixCellsMovementSize,
+          y: (element) => element.y * matrixCellsMovementSize,
+        },
+      ],
+    },
+  ],
 };
 
 console.log('elements', elements);
 
 const updateElement = (element) => {
-  if (s(`.${element.id}-background`)) {
-    s(`.${element.id}-background`).setAttribute('width', matrixCellsMovementSize);
-    s(`.${element.id}-background`).setAttribute('height', matrixCellsMovementSize);
-    s(`.${element.id}-background`).setAttribute('x', element.x * matrixCellsMovementSize);
-    s(`.${element.id}-background`).setAttribute('y', element.y * matrixCellsMovementSize);
-  }
+  element.components.map((component) => {
+    if (s(`.${element.id}-${component.id}`)) {
+      s(`.${element.id}-${component.id}`).setAttribute('width', component.width());
+      s(`.${element.id}-${component.id}`).setAttribute('height', component.height());
+      s(`.${element.id}-${component.id}`).setAttribute('x', component.x(element));
+      s(`.${element.id}-${component.id}`).setAttribute('y', component.y(element));
+    }
+  });
 };
 
 const renderControllerInstance = (screenDim) => {
@@ -154,24 +173,22 @@ const renderControllerInstance = (screenDim) => {
 
   Object.keys(elements).map((type) =>
     elements[type].map((element) => {
-      append(
-        '.matrix-cell-svg',
-        html`
-          <!-- 
-stroke="red"
-stroke-width="0" 
-    -->
-          <rect
-            class="${element.id}-background"
-            width="${matrixCellsMovementSize}"
-            height="${matrixCellsMovementSize}"
-            stroke-linecap="square"
-            x="${element.x * matrixCellsMovementSize}"
-            y="${element.y * matrixCellsMovementSize}"
-            style="fill: red"
-          />
-        `
-      );
+      element.components.map((component) => {
+        append(
+          '.matrix-cell-svg',
+          html`
+            <rect
+              class="${element.id}-${component.id}"
+              width="${component.width()}"
+              height="${component.height()}"
+              stroke-linecap="square"
+              x="${component.x(element)}"
+              y="${component.y(element)}"
+              style="fill: red"
+            />
+          `
+        );
+      });
     })
   );
 
@@ -198,6 +215,10 @@ stroke-width="0"
             elements[type][i].y -= element.vel;
             update = true;
           }
+          if (elements[type][i].y > matrixCellsMovement - 1) elements[type][i].y = matrixCellsMovement - 1;
+          if (elements[type][i].y < 0) elements[type][i].y = 0;
+          if (elements[type][i].x > matrixCellsMovement - 1) elements[type][i].x = matrixCellsMovement - 1;
+          if (elements[type][i].x < 0) elements[type][i].x = 0;
         }
         if (update) updateElement(elements.user[i]);
       })
