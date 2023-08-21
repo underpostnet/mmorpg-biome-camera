@@ -1,9 +1,13 @@
-const mapCellsInstances = 1;
-const mapCellsMovement = 16 * mapCellsInstances;
-const mapCellsPaint = 3;
-const mapCellsSize = mapCellsMovement * mapCellsPaint;
-const mapCellsRange = mapCellsSize - 1;
-const mapCellsAmplitudeFactor = 1;
+const matrixCellsInstances = 1;
+const matrixCellsMovement = 16 * matrixCellsInstances;
+const matrixCellsMovementRange = matrixCellsMovement - 1;
+const matrixCellsPaint = 3;
+const matrixCellsSize = matrixCellsMovement * matrixCellsPaint;
+const matrixCellsRange = matrixCellsSize - 1;
+const matrixCellsAmplitudeFactor = 1;
+let matrixCellsWidth;
+let matrixCellsMovementSize;
+let matrixWidth;
 
 append(
   'body',
@@ -15,72 +19,155 @@ append(
         color: white;
         font-family: monospace;
       }
-      .matrix {
+      .matrix-cell-svg {
         background: gray;
+        top: 0px;
+        left: 0px;
       }
       .matrix-cell {
         border: 1px solid yellow;
         box-sizing: border-box;
+      }
+      .matrix-cell-movement {
+        border: 1px solid black;
+        box-sizing: border-box;
+      }
+      .matrix-render {
+        top: 0px;
+        left: 0px;
+      }
+      .matrix-render-movement {
+        top: 0px;
+        left: 0px;
       }
     </style>
 
     <style class="css-controller"></style>
 
     <div class="fix center matrix">
-      <div class="in matrix-render"></div>
+      <svg class="abs matrix-cell-svg" version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="abs matrix-render"></div>
+      <div class="abs matrix-render-movement"></div>
     </div> `
 );
 
-const matrixRender = () =>
+const matrixRender = () => {
   htmls(
     '.matrix-render',
-    range(0, mapCellsRange)
-      .map(
-        (y) =>
-          html`<div class="fl">
-            ${range(0, mapCellsRange)
-              .map(
-                (x) => html`
-                  <div class="in fll matrix-cell">
-                    <!-- ${x}-${y} -->
-                  </div>
-                `
-              )
-              .join('')}
-          </div>`
-      )
-      .join('')
+    html`
+      ${range(0, matrixCellsRange)
+        .map(
+          (y) =>
+            html`<div class="fl">
+              ${range(0, matrixCellsRange)
+                .map(
+                  (x) => html`
+                    <div class="in fll matrix-cell">
+                      <!-- ${x}-${y} -->
+                    </div>
+                  `
+                )
+                .join('')}
+            </div>`
+        )
+        .join('')}
+    `
   );
+  htmls(
+    '.matrix-render-movement',
+    html`
+      ${range(0, matrixCellsMovementRange)
+        .map(
+          (y) =>
+            html`<div class="fl">
+              ${range(0, matrixCellsMovementRange)
+                .map(
+                  (x) => html`
+                    <div class="in fll matrix-cell-movement">
+                      <!-- ${x}-${y} -->
+                    </div>
+                  `
+                )
+                .join('')}
+            </div>`
+        )
+        .join('')}
+    `
+  );
+};
 
 matrixRender();
 
-const cssControllerInstance = (screenDim) => {
-  const matrixFactor = screenDim.minValue * mapCellsAmplitudeFactor;
+const elements = {
+  user: [{ id: `user${s4()}`, x: 1, y: 1 }],
+};
+
+console.log('elements', elements);
+
+const renderControllerInstance = (screenDim) => {
+  matrixWidth = screenDim.minValue * matrixCellsAmplitudeFactor;
+  matrixCellsWidth = matrixWidth / matrixCellsSize;
+  matrixCellsMovementSize = matrixCellsWidth * matrixCellsPaint;
   htmls(
     '.css-controller',
     css`
       .matrix {
-        width: ${matrixFactor}px;
-        height: ${matrixFactor}px;
+        width: ${matrixWidth}px;
+        height: ${matrixWidth}px;
       }
       .matrix-cell {
-        width: ${matrixFactor / mapCellsSize}px;
-        height: ${matrixFactor / mapCellsSize}px;
+        width: ${matrixCellsWidth}px;
+        height: ${matrixCellsWidth}px;
+      }
+      .matrix-cell-movement {
+        width: ${matrixCellsMovementSize}px;
+        height: ${matrixCellsMovementSize}px;
       }
     `
+  );
+  s('.matrix-cell-svg').setAttribute('width', screenDim.minValue);
+  s('.matrix-cell-svg').setAttribute('height', screenDim.minValue);
+  Object.keys(elements).map((type) =>
+    elements[type].map((element) => {
+      if (!s(`.${element.id}-background`)) {
+        append(
+          '.matrix-cell-svg',
+          html`
+            <!-- 
+      stroke="red"
+      stroke-width="0" 
+          -->
+            <rect
+              class="${element.id}-background"
+              width="${matrixCellsMovementSize}"
+              height="${matrixCellsMovementSize}"
+              stroke-linecap="square"
+              x="${element.x * matrixCellsMovementSize}"
+              y="${element.y * matrixCellsMovementSize}"
+              style="fill: red"
+            />
+          `
+        );
+      } else {
+        s(`.${element.id}-background`).setAttribute('width', matrixCellsMovementSize);
+        s(`.${element.id}-background`).setAttribute('height', matrixCellsMovementSize);
+        s(`.${element.id}-background`).setAttribute('x', element.x * matrixCellsMovementSize);
+        s(`.${element.id}-background`).setAttribute('y', element.y * matrixCellsMovementSize);
+      }
+    })
   );
 };
 (function () {
   let lastScreenDimMin;
   let lastScreenDimMax;
-  const cssController = () => {
+  const renderController = () => {
     const screenDim = dimState();
     if (lastScreenDimMin !== screenDim.minValue || lastScreenDimMax !== screenDim.maxValue) {
       lastScreenDimMin = newInstance(screenDim.minValue);
       lastScreenDimMax = newInstance(screenDim.maxValue);
-      cssControllerInstance(screenDim);
+      renderControllerInstance(screenDim);
     }
   };
-  cssController();
-  setInterval(() => cssController(), 100);
+  renderController();
+  setInterval(() => renderController(), 15);
 })();
