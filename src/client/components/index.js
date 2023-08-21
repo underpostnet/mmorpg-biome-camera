@@ -8,6 +8,10 @@ const matrixCellsAmplitudeFactor = 1;
 let matrixCellsWidth;
 let matrixCellsMovementSize;
 let matrixWidth;
+let lastScreenDim = {};
+window.activeKey = {};
+window.onkeydown = (e) => (console.log('onkeydown', e.key), (window.activeKey[e.key] = true));
+window.onkeyup = (e) => (console.log('onkeyup', e.key), (window.activeKey[e.key] = undefined));
 
 append(
   'body',
@@ -99,10 +103,19 @@ const matrixRender = () => {
 matrixRender();
 
 const elements = {
-  user: [{ id: `user${s4()}`, x: 1, y: 1 }],
+  user: [{ id: `user${s4()}`, x: 1, y: 1, vel: 0.3 }],
 };
 
 console.log('elements', elements);
+
+const updateElement = (element) => {
+  if (s(`.${element.id}-background`)) {
+    s(`.${element.id}-background`).setAttribute('width', matrixCellsMovementSize);
+    s(`.${element.id}-background`).setAttribute('height', matrixCellsMovementSize);
+    s(`.${element.id}-background`).setAttribute('x', element.x * matrixCellsMovementSize);
+    s(`.${element.id}-background`).setAttribute('y', element.y * matrixCellsMovementSize);
+  }
+};
 
 const renderControllerInstance = (screenDim) => {
   matrixWidth = screenDim.minValue * matrixCellsAmplitudeFactor;
@@ -127,47 +140,67 @@ const renderControllerInstance = (screenDim) => {
   );
   s('.matrix-cell-svg').setAttribute('width', screenDim.minValue);
   s('.matrix-cell-svg').setAttribute('height', screenDim.minValue);
-  Object.keys(elements).map((type) =>
-    elements[type].map((element) => {
-      if (!s(`.${element.id}-background`)) {
-        append(
-          '.matrix-cell-svg',
-          html`
-            <!-- 
-      stroke="red"
-      stroke-width="0" 
-          -->
-            <rect
-              class="${element.id}-background"
-              width="${matrixCellsMovementSize}"
-              height="${matrixCellsMovementSize}"
-              stroke-linecap="square"
-              x="${element.x * matrixCellsMovementSize}"
-              y="${element.y * matrixCellsMovementSize}"
-              style="fill: red"
-            />
-          `
-        );
-      } else {
-        s(`.${element.id}-background`).setAttribute('width', matrixCellsMovementSize);
-        s(`.${element.id}-background`).setAttribute('height', matrixCellsMovementSize);
-        s(`.${element.id}-background`).setAttribute('x', element.x * matrixCellsMovementSize);
-        s(`.${element.id}-background`).setAttribute('y', element.y * matrixCellsMovementSize);
-      }
-    })
-  );
+  Object.keys(elements).map((type) => elements[type].map((element) => updateElement(element)));
 };
 (function () {
-  let lastScreenDimMin;
-  let lastScreenDimMax;
   const renderController = () => {
     const screenDim = dimState();
-    if (lastScreenDimMin !== screenDim.minValue || lastScreenDimMax !== screenDim.maxValue) {
-      lastScreenDimMin = newInstance(screenDim.minValue);
-      lastScreenDimMax = newInstance(screenDim.maxValue);
+    if (lastScreenDim.minValue !== screenDim.minValue || lastScreenDim.maxValue !== screenDim.maxValue) {
+      lastScreenDim = newInstance(screenDim);
       renderControllerInstance(screenDim);
     }
   };
   renderController();
-  setInterval(() => renderController(), 15);
+
+  Object.keys(elements).map((type) =>
+    elements[type].map((element) => {
+      append(
+        '.matrix-cell-svg',
+        html`
+          <!-- 
+stroke="red"
+stroke-width="0" 
+    -->
+          <rect
+            class="${element.id}-background"
+            width="${matrixCellsMovementSize}"
+            height="${matrixCellsMovementSize}"
+            stroke-linecap="square"
+            x="${element.x * matrixCellsMovementSize}"
+            y="${element.y * matrixCellsMovementSize}"
+            style="fill: red"
+          />
+        `
+      );
+    })
+  );
+
+  setInterval(() => {
+    renderController();
+    Object.keys(elements).map((type) =>
+      elements[type].map((element, i) => {
+        let update = false;
+        if (i === 0) {
+          // main user
+          if (window.activeKey['ArrowRight']) {
+            elements[type][i].x += element.vel;
+            update = true;
+          }
+          if (window.activeKey['ArrowLeft']) {
+            elements[type][i].x -= element.vel;
+            update = true;
+          }
+          if (window.activeKey['ArrowDown']) {
+            elements[type][i].y += element.vel;
+            update = true;
+          }
+          if (window.activeKey['ArrowUp']) {
+            elements[type][i].y -= element.vel;
+            update = true;
+          }
+        }
+        if (update) updateElement(elements.user[i]);
+      })
+    );
+  }, 15);
 })();
