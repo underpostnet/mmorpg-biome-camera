@@ -52,12 +52,12 @@ const renderTable = (data, options) =>
           ${data
             .map(
               (row) =>
-                '<tr>' +
-                Object.keys(data[0])
-                  .map((key) => html`<th>${row[key]}</th>`)
-                  .join('') +
-                (options && options.actions ? options.actions(row) : '') +
-                '</tr>'
+                html`<tr>
+                  ${Object.keys(data[0])
+                    .map((key) => html`<th>${row[key]}</th>`)
+                    .join('') + (options && options.actions ? options.actions(row) : '')}
+                  '
+                </tr>`
             )
             .join('')}
         </table>

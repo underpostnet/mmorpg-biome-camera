@@ -3,6 +3,7 @@ viewRender = (data) => html`
   <html dir="ltr">
     <head>
       <title>${data.title}</title>
+      <link rel="icon" type="image/x-icon" href="/favicon.ico" />
       <meta charset="UTF-8" />
       <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
     </head>

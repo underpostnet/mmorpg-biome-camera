@@ -1,18 +1,20 @@
 import fs from 'fs';
 import express from 'express';
 
-import { deleteFolderRecursive } from '../../core/server/util/files.js';
+import { copyDir, deleteFolderRecursive } from '../../core/server/util/files.js';
 import { commonFunctions } from '../../core/server/util/common.js';
 import { srcFormatted, pathViewFormatted } from '../../core/server/util/formatted.js';
 
 // view
 import { IndexView } from '../client/views/index.js';
 
-const views = (app) => {
+const views = async (app) => {
   const publicDirectory = './public';
 
   if (fs.existsSync(publicDirectory)) deleteFolderRecursive(`${publicDirectory}`);
   fs.mkdirSync(`${publicDirectory}`);
+
+  await copyDir('./src/client/public', publicDirectory);
 
   const baseClientJS = `
     ${commonFunctions()}
@@ -21,7 +23,7 @@ const views = (app) => {
 `;
 
   let viewRender;
-  eval(srcFormatted(fs.readFileSync('./src/client/view-render.js', 'utf8'), 'utf8'));
+  eval(srcFormatted(fs.readFileSync('./src/client/render.js', 'utf8'), 'utf8'));
 
   [IndexView].map((view) => {
     console.log('render', view);
