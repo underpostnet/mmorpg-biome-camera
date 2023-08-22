@@ -10,6 +10,10 @@ let matrixCellsMovementSize;
 let matrixWidth;
 let lastScreenDim = {};
 window.activeKey = {};
+window.logicStorage = {
+  renderControllerInstance: {},
+  updateElement: {},
+};
 window.onkeydown = (e) => (console.log('onkeydown', e.key), (window.activeKey[e.key] = true));
 window.onkeyup = (e) => (console.log('onkeyup', e.key), (window.activeKey[e.key] = undefined));
 
@@ -39,10 +43,12 @@ append(
       .matrix-render {
         top: 0px;
         left: 0px;
+        z-index: 1;
       }
       .matrix-render-movement {
         top: 0px;
         left: 0px;
+        z-index: 1;
       }
     </style>
 
@@ -168,7 +174,7 @@ const elements = {
 
 console.log('elements', elements);
 
-const updateElement = (element) => {
+const updateElement = (type, element) => {
   element.components.map((component) => {
     if (s(`.${element.id}-${component.id}`)) {
       s(`.${element.id}-${component.id}`).setAttribute('width', components[component.id].width());
@@ -176,6 +182,9 @@ const updateElement = (element) => {
       s(`.${element.id}-${component.id}`).setAttribute('x', components[component.id].x(element));
       s(`.${element.id}-${component.id}`).setAttribute('y', components[component.id].y(element));
     }
+    Object.keys(window.logicStorage['updateElement']).map((key) =>
+      window.logicStorage['updateElement'][key](type, element)
+    );
   });
 };
 
@@ -200,13 +209,19 @@ const renderControllerInstance = () => {
       }
     `
   );
+
+  Object.keys(window.logicStorage['renderControllerInstance']).map((key) =>
+    window.logicStorage['renderControllerInstance'][key]()
+  );
+
   s('.matrix-cell-svg').setAttribute('width', matrixWidth);
   s('.matrix-cell-svg').setAttribute('height', matrixWidth);
   Object.keys(elements).map((type) => {
     if (typeof elements[type] === 'function') elements[type] = elements[type]();
-    elements[type].map((element) => updateElement(element));
+    elements[type].map((element) => updateElement(type, element));
   });
 };
+
 (function () {
   const renderController = () => {
     const screenDim = dimState();
@@ -215,111 +230,113 @@ const renderControllerInstance = () => {
       renderControllerInstance();
     }
   };
-  renderController();
-
-  Object.keys(elements).map((type) =>
-    elements[type].map((element) => {
-      element.components.map((component) => {
-        append(
-          '.matrix-cell-svg',
-          html`
-            <rect
-              class="${element.id}-${component.id}"
-              width="${components[component.id].width()}"
-              height="${components[component.id].height()}"
-              stroke-linecap="square"
-              x="${components[component.id].x(element)}"
-              y="${components[component.id].y(element)}"
-              style="fill: ${component.color}"
-            />
-          `
-        );
-      });
-    })
-  );
-
-  setInterval(() => {
+  setTimeout(() => {
     renderController();
-    Object.keys(elements).map((type) => {
-      elements[type].map((element, i) => {
-        switch (type) {
-          case 'bot':
-            switch (random(0, 3)) {
-              case 0:
-                elements[type][i].x += element.vel;
-                break;
-              case 1:
-                elements[type][i].x -= element.vel;
-                break;
-              case 2:
-                elements[type][i].y += element.vel;
-                break;
-              case 3:
-                elements[type][i].y -= element.vel;
-                break;
-              default:
-                break;
-            }
-            break;
-          case 'user':
-            switch (i) {
-              case 0:
-                if (window.activeKey['ArrowRight']) elements[type][i].x += element.vel;
-                if (window.activeKey['ArrowLeft']) elements[type][i].x -= element.vel;
-                if (window.activeKey['ArrowDown']) elements[type][i].y += element.vel;
-                if (window.activeKey['ArrowUp']) elements[type][i].y -= element.vel;
+    Object.keys(elements).map((type) =>
+      elements[type].map((element) => {
+        element.components.map((component) => {
+          return;
+          append(
+            '.matrix-cell-svg',
+            html`
+              <rect
+                class="${element.id}-${component.id}"
+                width="${components[component.id].width()}"
+                height="${components[component.id].height()}"
+                stroke-linecap="square"
+                x="${components[component.id].x(element)}"
+                y="${components[component.id].y(element)}"
+                style="fill: ${component.color}"
+              />
+            `
+          );
+        });
+      })
+    );
 
-                const factorScreenAmplitude = 1 / matrixCellsAmplitudeFactor;
-                const factorScreen = (lastScreenDim.maxValue / lastScreenDim.minValue) * factorScreenAmplitude;
-                const factorScreenMin = (100 * (matrixCellsWidth / 1)) / lastScreenDim.minValue;
-                const factorScreenMax = (100 * (matrixCellsWidth / 1)) / lastScreenDim.maxValue;
+    setInterval(() => {
+      renderController();
+      Object.keys(elements).map((type) => {
+        elements[type].map((element, i) => {
+          switch (type) {
+            case 'bot':
+              switch (random(0, 3)) {
+                case 0:
+                  elements[type][i].x += element.vel;
+                  break;
+                case 1:
+                  elements[type][i].x -= element.vel;
+                  break;
+                case 2:
+                  elements[type][i].y += element.vel;
+                  break;
+                case 3:
+                  elements[type][i].y -= element.vel;
+                  break;
+                default:
+                  break;
+              }
+              break;
+            case 'user':
+              switch (i) {
+                case 0:
+                  if (window.activeKey['ArrowRight']) elements[type][i].x += element.vel;
+                  if (window.activeKey['ArrowLeft']) elements[type][i].x -= element.vel;
+                  if (window.activeKey['ArrowDown']) elements[type][i].y += element.vel;
+                  if (window.activeKey['ArrowUp']) elements[type][i].y -= element.vel;
 
-                if (lastScreenDim.minType === 'height') {
-                  s('.matrix').style.left = `${
-                    50 -
-                    factorScreenMax -
-                    factorScreenMax / 2 -
-                    (elements[type][i].x * 100) / matrixCellsMovement / factorScreen
-                  }%`;
-                  s('.matrix').style.top = `${
-                    50 -
-                    factorScreenMin -
-                    factorScreenMin / 2 -
-                    (elements[type][i].y * 100) / matrixCellsMovement / factorScreenAmplitude
-                  }%`;
-                } else {
-                  s('.matrix').style.left = `${
-                    50 -
-                    factorScreenMin -
-                    factorScreenMin / 2 -
-                    (elements[type][i].x * 100) / matrixCellsMovement / factorScreenAmplitude
-                  }%`;
-                  s('.matrix').style.top = `${
-                    50 -
-                    factorScreenMax -
-                    factorScreenMax / 2 -
-                    (elements[type][i].y * 100) / matrixCellsMovement / factorScreen
-                  }%`;
-                }
+                  const factorScreenAmplitude = 1 / matrixCellsAmplitudeFactor;
+                  const factorScreen = (lastScreenDim.maxValue / lastScreenDim.minValue) * factorScreenAmplitude;
+                  const factorScreenMin = (100 * (matrixCellsWidth / 1)) / lastScreenDim.minValue;
+                  const factorScreenMax = (100 * (matrixCellsWidth / 1)) / lastScreenDim.maxValue;
 
-                break;
+                  if (lastScreenDim.minType === 'height') {
+                    s('.matrix').style.left = `${
+                      50 -
+                      factorScreenMax -
+                      factorScreenMax / 2 -
+                      (elements[type][i].x * 100) / matrixCellsMovement / factorScreen
+                    }%`;
+                    s('.matrix').style.top = `${
+                      50 -
+                      factorScreenMin -
+                      factorScreenMin / 2 -
+                      (elements[type][i].y * 100) / matrixCellsMovement / factorScreenAmplitude
+                    }%`;
+                  } else {
+                    s('.matrix').style.left = `${
+                      50 -
+                      factorScreenMin -
+                      factorScreenMin / 2 -
+                      (elements[type][i].x * 100) / matrixCellsMovement / factorScreenAmplitude
+                    }%`;
+                    s('.matrix').style.top = `${
+                      50 -
+                      factorScreenMax -
+                      factorScreenMax / 2 -
+                      (elements[type][i].y * 100) / matrixCellsMovement / factorScreen
+                    }%`;
+                  }
 
-              default:
-                break;
-            }
-            break;
-          default:
-            break;
-        }
-        if (elements[type][i].y > matrixCellsMovement - 1) elements[type][i].y = matrixCellsMovement - 1;
-        if (elements[type][i].y < 0) elements[type][i].y = 0;
-        if (elements[type][i].x > matrixCellsMovement - 1) elements[type][i].x = matrixCellsMovement - 1;
-        if (elements[type][i].x < 0) elements[type][i].x = 0;
+                  break;
 
-        updateElement(elements[[type]][i]);
+                default:
+                  break;
+              }
+              break;
+            default:
+              break;
+          }
+          if (elements[type][i].y > matrixCellsMovement - 1) elements[type][i].y = matrixCellsMovement - 1;
+          if (elements[type][i].y < 0) elements[type][i].y = 0;
+          if (elements[type][i].x > matrixCellsMovement - 1) elements[type][i].x = matrixCellsMovement - 1;
+          if (elements[type][i].x < 0) elements[type][i].x = 0;
+
+          updateElement(type, elements[[type]][i]);
+        });
       });
-    });
-  }, 15);
+    }, 15);
+  });
 })();
 
 // center test
