@@ -5,6 +5,7 @@ const matrixCellsPaint = 3;
 const matrixCellsSize = matrixCellsMovement * matrixCellsPaint;
 const matrixCellsRange = matrixCellsSize - 1;
 const matrixCellsAmplitudeFactor = 4;
+const matrixCellsZindex = 1;
 let matrixCellsWidth;
 let matrixCellsMovementSize;
 let matrixCellsView = false;
@@ -47,12 +48,12 @@ append(
       .matrix-render {
         top: 0px;
         left: 0px;
-        z-index: 1;
+        z-index: ${matrixCellsZindex};
       }
       .matrix-render-movement {
         top: 0px;
         left: 0px;
-        z-index: 1;
+        z-index: ${matrixCellsZindex};
       }
     </style>
 
@@ -197,23 +198,31 @@ const renderControllerInstance = () => {
   matrixWidth = lastScreenDim.minValue * matrixCellsAmplitudeFactor;
   matrixCellsWidth = matrixWidth / matrixCellsSize;
   matrixCellsMovementSize = matrixCellsWidth * matrixCellsPaint;
-  htmls(
-    '.css-controller',
-    css`
+
+  let cssRender = '';
+  if (s('.matrix'))
+    cssRender += css`
       .matrix {
         width: ${matrixWidth}px;
         height: ${matrixWidth}px;
       }
+    `;
+  if (s('.matrix-cell'))
+    cssRender += css`
       .matrix-cell {
         width: ${matrixCellsWidth}px;
         height: ${matrixCellsWidth}px;
       }
+    `;
+  if (s('.matrix-cell-movement'))
+    cssRender += css`
       .matrix-cell-movement {
         width: ${matrixCellsMovementSize}px;
         height: ${matrixCellsMovementSize}px;
       }
-    `
-  );
+    `;
+
+  htmls('.css-controller', cssRender);
 
   Object.keys(window.logicStorage['renderControllerInstance']).map((key) =>
     window.logicStorage['renderControllerInstance'][key]()
