@@ -415,7 +415,7 @@ function objectEquals(x, y) {
     : x === y;
 }
 
-const commonFunctions = () => `
+const commonFunctions = `
     const s4 = ${s4};
     const range = ${range};
     const random = ${random};

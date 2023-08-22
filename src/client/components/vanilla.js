@@ -174,7 +174,7 @@ const fullScreenIn = () => {
   }
 };
 
-const dimState = () =>
+const getResponsiveData = () =>
   window.innerWidth > window.innerHeight
     ? { minValue: window.innerHeight, maxValue: window.innerWidth, minType: 'height', maxType: 'width' }
     : { minValue: window.innerWidth, maxValue: window.innerHeight, minType: 'width', maxType: 'height' };
