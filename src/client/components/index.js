@@ -7,6 +7,9 @@ const matrixCellsRange = matrixCellsSize - 1;
 const matrixCellsAmplitudeFactor = 4;
 let matrixCellsWidth;
 let matrixCellsMovementSize;
+let matrixCellsView = false;
+let matrixCellsMovementView = false;
+
 let matrixWidth;
 let lastScreenDim = {};
 window.activeKey = {};
@@ -14,6 +17,7 @@ window.logicStorage = {
   renderControllerInstance: {},
   updateElement: {},
 };
+
 window.onkeydown = (e) => (console.log('onkeydown', e.key), (window.activeKey[e.key] = true));
 window.onkeyup = (e) => (console.log('onkeyup', e.key), (window.activeKey[e.key] = undefined));
 
@@ -62,49 +66,50 @@ append(
 );
 
 const matrixRender = () => {
-  return;
-  htmls(
-    '.matrix-render',
-    html`
-      ${range(0, matrixCellsRange)
-        .map(
-          (y) =>
-            html`<div class="fl">
-              ${range(0, matrixCellsRange)
-                .map(
-                  (x) => html`
-                    <div class="in fll matrix-cell">
-                      <!-- ${x}-${y} -->
-                    </div>
-                  `
-                )
-                .join('')}
-            </div>`
-        )
-        .join('')}
-    `
-  );
-  htmls(
-    '.matrix-render-movement',
-    html`
-      ${range(0, matrixCellsMovementRange)
-        .map(
-          (y) =>
-            html`<div class="fl">
-              ${range(0, matrixCellsMovementRange)
-                .map(
-                  (x) => html`
-                    <div class="in fll matrix-cell-movement">
-                      <!-- ${x}-${y} -->
-                    </div>
-                  `
-                )
-                .join('')}
-            </div>`
-        )
-        .join('')}
-    `
-  );
+  if (matrixCellsView)
+    htmls(
+      '.matrix-render',
+      html`
+        ${range(0, matrixCellsRange)
+          .map(
+            (y) =>
+              html`<div class="fl">
+                ${range(0, matrixCellsRange)
+                  .map(
+                    (x) => html`
+                      <div class="in fll matrix-cell">
+                        <!-- ${x}-${y} -->
+                      </div>
+                    `
+                  )
+                  .join('')}
+              </div>`
+          )
+          .join('')}
+      `
+    );
+  if (matrixCellsMovementView)
+    htmls(
+      '.matrix-render-movement',
+      html`
+        ${range(0, matrixCellsMovementRange)
+          .map(
+            (y) =>
+              html`<div class="fl">
+                ${range(0, matrixCellsMovementRange)
+                  .map(
+                    (x) => html`
+                      <div class="in fll matrix-cell-movement">
+                        <!-- ${x}-${y} -->
+                      </div>
+                    `
+                  )
+                  .join('')}
+              </div>`
+          )
+          .join('')}
+      `
+    );
 };
 
 matrixRender();
