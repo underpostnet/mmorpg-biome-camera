@@ -1,16 +1,10 @@
 const s4 = () => (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
 
-const getHash = () => s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-
 const range = (start, end) => {
   return Array.apply(0, Array(end - start + 1)).map((element, index) => index + start);
 };
 
-const random = (min, max) => {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
-};
+const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
 
 const renderLang = (langs, req) => {
   let translateHash;
@@ -412,8 +406,6 @@ const ceil10 = (value, exp) => {
 // ceil10(-55.59, -1);   // -55.5
 // ceil10(-59, 1);       // -50
 
-const JSONweb = (data) => 'JSON.parse(`' + JSON.stringify(data) + '`)';
-
 function objectEquals(x, y) {
   const ok = Object.keys,
     tx = typeof x,
@@ -424,7 +416,6 @@ function objectEquals(x, y) {
 }
 
 const commonFunctions = () => `
-    const getHash = ${getHash};
     const s4 = ${s4};
     const range = ${range};
     const random = ${random};
@@ -453,7 +444,6 @@ const commonFunctions = () => `
     const usernameValidator = ${usernameValidator};
     const renderLang = ${renderLang};
     const passwordMatchValidator = ${passwordMatchValidator};
-    const JSONweb = ${JSONweb};
     const floatFixed = ${floatFixed};
     ${merge};
     ${objectEquals};
@@ -463,7 +453,6 @@ const commonFunctions = () => `
 export {
   commonFunctions,
   s4,
-  getHash,
   range,
   random,
   passwordValidator,
@@ -490,7 +479,6 @@ export {
   merge,
   passwordMatchValidator,
   renderLang,
-  JSONweb,
   objectEquals,
   getJoystickDirection,
   floatFixed,
