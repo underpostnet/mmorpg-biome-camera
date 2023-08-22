@@ -30,6 +30,7 @@ const views = async (app) => {
     const appSrc = srcFormatted(
       `(function(){${
         commonFunctions +
+        view.libs.map((lib) => fs.readFileSync(`./src/client/libs/${lib}.js`, 'utf8')).join('') +
         view.componets.map((component) => fs.readFileSync(`./src/client/components/${component}.js`, 'utf8')).join('')
       }}())`
     );
