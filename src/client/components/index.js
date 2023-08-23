@@ -9,19 +9,9 @@ const index = {
             color: white;
             font-family: monospace;
           }
-          .responsive-test {
-            background: gray;
-          }
         </style>
-        <strong> C Y B E R I A </strong>
-        <div class="fix center responsive-test"></div>
       `
     );
-    this.ResponsiveController.Event['responsive-test'] = () => {
-      s('.responsive-test').style.width = `${this.ResponsiveController.Data.Responsive.minValue}px`;
-      s('.responsive-test').style.height = `${this.ResponsiveController.Data.Responsive.minValue}px`;
-    };
-    this.ResponsiveController.init();
   },
   ResponsiveController: {
     Data: {

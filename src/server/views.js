@@ -4,6 +4,7 @@ import express from 'express';
 import { copyDir, deleteFolderRecursive } from './files.js';
 import { commonFunctions } from './common.js';
 import { srcFormatted, pathViewFormatted } from './formatted.js';
+import { ioSSR } from './socket.io.js';
 
 // view
 import { IndexView } from '../client/views/index.js';
@@ -30,6 +31,7 @@ const views = async (app) => {
     const appSrc = srcFormatted(
       `(function(){${
         commonFunctions +
+        ioSSR +
         view.libs.map((lib) => fs.readFileSync(`./src/client/libs/${lib}.js`, 'utf8')).join('') +
         view.componets.map((component) => fs.readFileSync(`./src/client/components/${component}.js`, 'utf8')).join('')
       }}())`

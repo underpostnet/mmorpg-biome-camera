@@ -4,6 +4,13 @@ const range = (start, end) => {
   return Array.apply(0, Array(end - start + 1)).map((element, index) => index + start);
 };
 
+const getId = (arr, keyId = 'id', sufix = 'x') => {
+  let _id;
+  while (arr.find((element) => element[keyId] === _id) || !_id)
+    _id = sufix + (s4() + s4() + s4() + s4() + s4()).slice(1);
+  return _id;
+};
+
 const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
 
 const renderLang = (langs, req) => {
@@ -445,6 +452,7 @@ const commonFunctions = `
     const renderLang = ${renderLang};
     const passwordMatchValidator = ${passwordMatchValidator};
     const floatFixed = ${floatFixed};
+    const getId = ${getId};
     ${merge};
     ${objectEquals};
     ${getJoystickDirection};
@@ -482,4 +490,5 @@ export {
   objectEquals,
   getJoystickDirection,
   floatFixed,
+  getId,
 };
