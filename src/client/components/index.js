@@ -12,6 +12,9 @@ const index = {
         </style>
       `
     );
+    setTimeout(() => {
+      this.ResponsiveController.init();
+    });
   },
   ResponsiveController: {
     Data: {

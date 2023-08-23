@@ -3,7 +3,7 @@ const socketIo = {
     this.socket = io(ioHost);
 
     this.socket.on('connect', () => {
-      console.log(`socket.io event: connect | session id: ${socket.id}`);
+      console.log(`socket.io event: connect | session id: ${this.socket.id}`);
     });
 
     this.socket.on('connect_error', (err) => {
