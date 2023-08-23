@@ -57,30 +57,6 @@ append(
         text-align: center;
       }
 
-      row {
-        display: flex;
-      }
-
-      .col-center {
-        justify-content: center;
-      }
-
-      .col-end {
-        justify-content: flex-end;
-      }
-
-      .col-start {
-        justify-content: flex-start;
-      }
-
-      .col-sa {
-        justify-content: space-around;
-      }
-
-      .col-sb {
-        justify-content: space-between;
-      }
-
       input {
         outline: none !important;
         border: none;
