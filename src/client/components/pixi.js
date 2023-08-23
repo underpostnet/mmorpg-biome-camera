@@ -1,4 +1,7 @@
 const pixi = {
+  Data: {
+    dim: 1200,
+  },
   init: function () {
     append('body', html` <style class="css-controller-pixi"></style> `);
     this.app = new PIXI.Application({
@@ -34,9 +37,6 @@ const pixi = {
         `
       );
     };
-  },
-  Data: {
-    dim: 1200,
   },
 };
 
