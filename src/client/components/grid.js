@@ -5,9 +5,31 @@ const grid = {
   TestController: {
     Data: {
       active: true,
-      x: 0,
-      y: 0,
+      forcePositionActive: false,
+      forcePosition: {
+        x: 0,
+        y: 0,
+      },
+      x: function () {
+        if (elements.user[0] && !this.forcePositionActive) return elements.user[0].x;
+        return this.forcePosition.x;
+      },
+      y: function () {
+        if (elements.user[0] && !this.forcePositionActive) return elements.user[0].y;
+        return this.forcePosition.y;
+      },
       grids: ['grid-container', 'grid-container-paint'],
+      UserTestCell: {},
+    },
+    updateUserTestCell: function () {
+      if (this.Data.UserTestCell.x !== undefined && this.Data.UserTestCell.y !== undefined)
+        s(`.grid-cell-${this.Data.UserTestCell.x}-${this.Data.UserTestCell.y}`).style.border = null;
+
+      if (this.Data.active && s(`.grid-cell-${this.Data.x()}-${this.Data.y()}`)) {
+        s(`.grid-cell-${this.Data.x()}-${this.Data.y()}`).style.border = `2px solid green`;
+        this.Data.UserTestCell.x = this.Data.x();
+        this.Data.UserTestCell.y = this.Data.y();
+      }
     },
     init: function () {
       append(
@@ -55,7 +77,7 @@ const grid = {
           </div>
         `
       );
-      s(`.grid-cell-${this.Data.x}-${this.Data.y}`).style.border = `2px solid green`;
+
       append('body', html` <div class="fix center grid-cell-center-icon"></div> `);
     },
   },
@@ -86,10 +108,9 @@ const grid = {
     const ResponsiveData = index.ResponsiveController.getResponsiveData();
     const ResponsiveDataAmplitude = index.ResponsiveController.getResponsiveDataAmplitude();
 
-    // matrixCells
-
-    const x = this.TestController.Data.active ? this.TestController.Data.x : 0;
-    const y = this.TestController.Data.active ? this.TestController.Data.y : 0;
+    const x = this.TestController.Data.x();
+    const y = this.TestController.Data.y();
+    this.TestController.updateUserTestCell();
 
     if (ResponsiveData.minType === 'height') {
       this.Data.grids.concat(this.TestController.Data.active ? this.TestController.Data.grids : []).map((gridId) => {

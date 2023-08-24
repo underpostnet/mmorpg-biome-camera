@@ -17,7 +17,15 @@ const socketIo = {
     types.map((type) =>
       this.socket.on(type, (...args) => {
         console.log(`socket.io event: update ${type} | reason: ${args}`);
-        pixi.update(type, JSON.parse(args));
+        const element = JSON.parse(args);
+
+        let indexElement = elements[type].findIndex((e) => e.id === element.id);
+        if (indexElement === -1) {
+          elements[type].push(element);
+          indexElement = elements[type].length - 1;
+        } else elements[type][indexElement] = element;
+
+        pixi.update(type, elements[type][indexElement]);
       })
     );
   },

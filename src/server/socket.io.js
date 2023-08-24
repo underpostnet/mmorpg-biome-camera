@@ -53,7 +53,14 @@ const io = (httpServer) => {
       x: 1,
       y: 1,
       vel: 0.3,
-      components: [{ id: 'background', color: 'red' }],
+      components: [
+        {
+          id: 'background',
+          color: 'red',
+          active: true,
+          visible: true,
+        },
+      ],
       id: socket.id,
     };
     elements[type].push(user);

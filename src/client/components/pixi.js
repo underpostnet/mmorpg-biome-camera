@@ -31,8 +31,10 @@ const pixi = {
     }
     this.Data.elements[type][indexElement].container.x = element.x * (this.Data.dim / matrixCells);
     this.Data.elements[type][indexElement].container.y = element.y * (this.Data.dim / matrixCells);
+    if (indexElement === 0) grid.viewMatrixController();
     // components
     element.components.map((component) => {
+      if (!component.active) return;
       switch (component.id) {
         case 'background':
           if (!this.Data.elements[type][indexElement][component.id]) {
@@ -42,6 +44,7 @@ const pixi = {
             this.Data.elements[type][indexElement][component.id].width = this.Data.dim / matrixCells;
             this.Data.elements[type][indexElement][component.id].height = this.Data.dim / matrixCells;
             this.Data.elements[type][indexElement][component.id].tint = component.color;
+            this.Data.elements[type][indexElement][component.id].visible = component.visible;
             this.Data.elements[type][indexElement].container.addChild(
               this.Data.elements[type][indexElement][component.id]
             );

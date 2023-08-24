@@ -14,6 +14,7 @@ const index = {
     );
     setTimeout(() => {
       this.ResponsiveController.init();
+      this.KeysController.init();
     });
   },
   ResponsiveController: {
@@ -41,6 +42,15 @@ const index = {
       };
       this.CallBack();
       this.Interval = setInterval(() => this.CallBack(), this.Data.Interval);
+    },
+  },
+  KeysController: {
+    Data: {
+      activeKey: {},
+    },
+    init: function () {
+      window.onkeydown = (e) => (console.log('onkeydown', e.key), (this.Data.activeKey[e.key] = true));
+      window.onkeyup = (e) => (console.log('onkeyup', e.key), (this.Data.activeKey[e.key] = undefined));
     },
   },
 };
