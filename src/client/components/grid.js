@@ -1,6 +1,64 @@
 const grid = {
   Data: {
-    grids: ['grid-container', 'grid-container-paint', 'grid-container-canvas'],
+    grids: ['grid-container-canvas'],
+  },
+  TestController: {
+    Data: {
+      active: false,
+      x: matrixCells - 1,
+      y: matrixCells - 1,
+      grids: ['grid-container', 'grid-container-paint'],
+    },
+    init: function () {
+      append(
+        'grid',
+        html`
+          <style>
+            .grid-cell-paint {
+              box-sizing: border-box;
+              border: 1px solid yellow;
+            }
+            .grid-cell {
+              box-sizing: border-box;
+              border: 1px solid black;
+            }
+            .grid-cell-center-icon {
+              width: 20px;
+              height: 20px;
+              background: yellow;
+              border: 2px solid black;
+            }
+          </style>
+
+          <div class="abs grid-container-paint">
+            ${range(0, matrixCells * matrixCellsPaintByCell - 1)
+              .map(
+                (y) =>
+                  html`<div class="fl">
+                    ${range(0, matrixCells * matrixCellsPaintByCell - 1)
+                      .map((x) => html`<div class="in fll grid-cell-paint"></div>`)
+                      .join('')}
+                  </div>`
+              )
+              .join('')}
+          </div>
+          <div class="abs grid-container">
+            ${range(0, matrixCells - 1)
+              .map(
+                (y) =>
+                  html`<div class="fl">
+                    ${range(0, matrixCells - 1)
+                      .map((x) => html`<div class="in fll grid-cell grid-cell-${x}-${y}"></div>`)
+                      .join('')}
+                  </div>`
+              )
+              .join('')}
+          </div>
+        `
+      );
+      s(`.grid-cell-${this.Data.x}-${this.Data.y}`).style.background = 'red';
+      append('body', html` <div class="fix center grid-cell-center-icon"></div> `);
+    },
   },
   init: function () {
     append(
@@ -14,56 +72,13 @@ const grid = {
             height: 100%;
             overflow: hidden;
           }
-          .grid-cell-paint {
-            box-sizing: border-box;
-            border: 1px solid yellow;
-          }
-          .grid-cell {
-            box-sizing: border-box;
-            border: 1px solid black;
-          }
         </style>
+        <style class="css-controller-grid"></style>
         <grid class="abs"> </grid>
       `
     );
     pixi.appendInitHtml('grid');
-    append(
-      'grid',
-      html`
-        <style class="css-controller-grid"></style>
-        <div class="abs grid-container-paint">
-          ${range(0, matrixCells * matrixCellsPaintByCell - 1)
-            .map(
-              (y) =>
-                html`<div class="fl">
-                  ${range(0, matrixCells * matrixCellsPaintByCell - 1)
-                    .map((x) => html`<div class="in fll grid-cell-paint"></div>`)
-                    .join('')}
-                </div>`
-            )
-            .join('')}
-        </div>
-        <div class="abs grid-container">
-          ${range(0, matrixCells - 1)
-            .map(
-              (y) =>
-                html`<div class="fl">
-                  ${range(0, matrixCells - 1)
-                    .map(
-                      (x) =>
-                        html`<div
-                          class="in fll grid-cell"
-                          ${x === 1 && y === 1 ? 'style="background: red"' : ''}
-                        ></div>`
-                    )
-                    .join('')}
-                </div>`
-            )
-            .join('')}
-        </div>
-      `
-    );
-
+    if (this.TestController.Data.active) this.TestController.init();
     index.ResponsiveController.Event['grid'] = () => {
       this.viewMatrixController();
     };
@@ -74,11 +89,11 @@ const grid = {
 
     // matrixCells
 
-    const x = 1;
-    const y = 1;
+    const x = this.TestController.Data.active ? this.TestController.Data.x : 0;
+    const y = this.TestController.Data.active ? this.TestController.Data.y : 0;
 
     if (ResponsiveData.minType === 'height') {
-      this.Data.grids.map((gridId) => {
+      this.Data.grids.concat(this.TestController.Data.active ? this.TestController.Data.grids : []).map((gridId) => {
         s(`.${gridId}`).style.left = `${
           ResponsiveData.maxValue / 2 -
           (ResponsiveDataAmplitude.minValue / matrixCells) * x -
@@ -91,7 +106,7 @@ const grid = {
         }px`;
       });
     } else {
-      this.Data.grids.map((gridId) => {
+      this.Data.grids.concat(this.TestController.Data.active ? this.TestController.Data.grids : []).map((gridId) => {
         s(`.${gridId}`).style.left = `${
           ResponsiveData.minValue / 2 -
           (ResponsiveDataAmplitude.minValue / matrixCells) * x -
@@ -109,6 +124,7 @@ const grid = {
       '.css-controller-grid',
       css`
         ${this.Data.grids
+          .concat(this.TestController.Data.active ? this.TestController.Data.grids : [])
           .map(
             (gridId) => css`
               .${gridId} {
@@ -118,22 +134,22 @@ const grid = {
             `
           )
           .join('')}
-        .grid-cell {
-          width: ${ResponsiveDataAmplitude.minValue / matrixCells}px;
-          height: ${ResponsiveDataAmplitude.minValue / matrixCells}px;
-        }
-        .grid-cell-paint {
-          width: ${ResponsiveDataAmplitude.minValue / (matrixCells * matrixCellsPaintByCell)}px;
-          height: ${ResponsiveDataAmplitude.minValue / (matrixCells * matrixCellsPaintByCell)}px;
-        }
+
+        ${this.TestController.Data.active
+          ? css`
+              .grid-cell {
+                width: ${ResponsiveDataAmplitude.minValue / matrixCells}px;
+                height: ${ResponsiveDataAmplitude.minValue / matrixCells}px;
+              }
+              .grid-cell-paint {
+                width: ${ResponsiveDataAmplitude.minValue / (matrixCells * matrixCellsPaintByCell)}px;
+                height: ${ResponsiveDataAmplitude.minValue / (matrixCells * matrixCellsPaintByCell)}px;
+              }
+            `
+          : ''}
       `
     );
   },
 };
 
 grid.init();
-
-append(
-  'body',
-  html` <div class="fix center" style="width: 20px; height: 20px; background: yellow; border: 2px solid black;"></div> `
-);
