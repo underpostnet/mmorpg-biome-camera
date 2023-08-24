@@ -21,6 +21,15 @@ const index = {
       Interval: 15,
       Responsive: {},
     },
+    getResponsiveData: function () {
+      return newInstance(this.Data.Responsive);
+    },
+    getResponsiveDataAmplitude: function () {
+      const ResponsiveDataAmplitude = newInstance(this.Data.Responsive);
+      ResponsiveDataAmplitude.minValue = ResponsiveDataAmplitude.minValue * matrixCellsAmplitude;
+      ResponsiveDataAmplitude.maxValue = ResponsiveDataAmplitude.maxValue * matrixCellsAmplitude;
+      return ResponsiveDataAmplitude;
+    },
     Event: {},
     init: function () {
       this.CallBack = () => {

@@ -3,13 +3,15 @@ import { JSONweb } from './formatted.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const matrixCells = 16 * 3;
-const matrixCellsAmplitude = 1;
+const matrixCells = 16;
+const matrixCellsPaintByCell = 3;
+const matrixCellsAmplitude = 2;
 const ioHost = `ws://localhost:${process.env.PORT}`;
 
 const ioSSR = `
   const matrixCells = ${matrixCells};
   const matrixCellsAmplitude = ${matrixCellsAmplitude};
+  const matrixCellsPaintByCell = ${matrixCellsPaintByCell};
   const ioHost = ${JSONweb(ioHost)};
 `;
 
