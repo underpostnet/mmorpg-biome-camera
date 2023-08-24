@@ -4,9 +4,9 @@ const grid = {
   },
   TestController: {
     Data: {
-      active: false,
-      x: matrixCells - 1,
-      y: matrixCells - 1,
+      active: true,
+      x: 0,
+      y: 0,
       grids: ['grid-container', 'grid-container-paint'],
     },
     init: function () {
@@ -25,8 +25,7 @@ const grid = {
             .grid-cell-center-icon {
               width: 20px;
               height: 20px;
-              background: yellow;
-              border: 2px solid black;
+              border: 2px solid blue;
             }
           </style>
 
@@ -56,7 +55,7 @@ const grid = {
           </div>
         `
       );
-      s(`.grid-cell-${this.Data.x}-${this.Data.y}`).style.background = 'red';
+      s(`.grid-cell-${this.Data.x}-${this.Data.y}`).style.border = `2px solid green`;
       append('body', html` <div class="fix center grid-cell-center-icon"></div> `);
     },
   },

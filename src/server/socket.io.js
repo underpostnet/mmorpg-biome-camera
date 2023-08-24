@@ -8,16 +8,18 @@ const matrixCellsPaintByCell = 3;
 const matrixCellsAmplitude = 2;
 const ioHost = `ws://localhost:${process.env.PORT}`;
 
+const types = ['user', 'bot'];
+const elements = {};
+types.map((type) => (elements[type] = []));
+
 const ioSSR = `
   const matrixCells = ${matrixCells};
   const matrixCellsAmplitude = ${matrixCellsAmplitude};
   const matrixCellsPaintByCell = ${matrixCellsPaintByCell};
   const ioHost = ${JSONweb(ioHost)};
+  const types = ${JSONweb(types)};
+  const elements = ${JSONweb(elements)};
 `;
-
-const types = ['user', 'bot'];
-const elements = {};
-types.map((type) => (elements[type] = []));
 
 const clients = [];
 

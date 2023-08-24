@@ -14,9 +14,12 @@ const socketIo = {
       console.log(`socket.io event: disconnect | reason: ${reason}`);
     });
 
-    this.socket.on('update', (...args) => {
-      // console.log(`socket.io event: update | reason: ${args}`);
-    });
+    types.map((type) =>
+      this.socket.on(type, (...args) => {
+        console.log(`socket.io event: update ${type} | reason: ${args}`);
+        pixi.update(type, JSON.parse(args));
+      })
+    );
   },
 };
 
