@@ -79,13 +79,29 @@ const grid = {
 
     if (ResponsiveData.minType === 'height') {
       this.Data.grids.map((gridId) => {
-        s(`.${gridId}`).style.left = `${ResponsiveData.maxValue / 2}px`;
-        s(`.${gridId}`).style.top = `${ResponsiveData.minValue / 2}px`;
+        s(`.${gridId}`).style.left = `${
+          ResponsiveData.maxValue / 2 -
+          (ResponsiveDataAmplitude.minValue / matrixCells) * x -
+          ResponsiveDataAmplitude.minValue / matrixCells / 2
+        }px`;
+        s(`.${gridId}`).style.top = `${
+          ResponsiveData.minValue / 2 -
+          (ResponsiveDataAmplitude.minValue / matrixCells) * y -
+          ResponsiveDataAmplitude.minValue / matrixCells / 2
+        }px`;
       });
     } else {
       this.Data.grids.map((gridId) => {
-        s(`.${gridId}`).style.left = `${ResponsiveData.minValue / 2}px`;
-        s(`.${gridId}`).style.top = `${ResponsiveData.maxValue / 2}px`;
+        s(`.${gridId}`).style.left = `${
+          ResponsiveData.minValue / 2 -
+          (ResponsiveDataAmplitude.minValue / matrixCells) * x -
+          ResponsiveDataAmplitude.minValue / matrixCells / 2
+        }px`;
+        s(`.${gridId}`).style.top = `${
+          ResponsiveData.maxValue / 2 -
+          (ResponsiveDataAmplitude.minValue / matrixCells) * y -
+          ResponsiveDataAmplitude.minValue / matrixCells / 2
+        }px`;
       });
     }
 
