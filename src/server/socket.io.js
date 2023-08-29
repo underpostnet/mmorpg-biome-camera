@@ -18,8 +18,7 @@ const ioSSR = `
   const matrixCellsPaintByCell = ${matrixCellsPaintByCell};
   const ioHost = ${JSONweb(ioHost)};
   const types = ${JSONweb(types)};
-  const elements = ${JSONweb(elements)};
-`;
+        `;
 
 const clients = [];
 

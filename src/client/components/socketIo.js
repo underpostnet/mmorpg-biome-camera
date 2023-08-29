@@ -1,4 +1,7 @@
 const socketIo = {
+  Data: {
+    elements: {},
+  },
   init: function () {
     this.socket = io(ioHost);
 
@@ -12,20 +15,22 @@ const socketIo = {
 
     this.socket.on('disconnect', (reason) => {
       console.log(`socket.io event: disconnect | reason: ${reason}`);
+      this.Data.elements = {};
+      pixi.removeAll();
     });
 
     types.map((type) =>
       this.socket.on(type, (...args) => {
         console.log(`socket.io event: update ${type} | reason: ${args}`);
         const element = JSON.parse(args);
-
-        let indexElement = elements[type].findIndex((e) => e.id === element.id);
+        if (!this.Data.elements[type]) this.Data.elements[type] = [];
+        let indexElement = this.Data.elements[type].findIndex((e) => e.id === element.id);
         if (indexElement === -1) {
-          elements[type].push(element);
-          indexElement = elements[type].length - 1;
-        } else elements[type][indexElement] = element;
+          this.Data.elements[type].push(element);
+          indexElement = this.Data.elements[type].length - 1;
+        } else this.Data.elements[type][indexElement] = element;
 
-        pixi.update(type, elements[type][indexElement]);
+        pixi.update(element, indexElement);
       })
     );
   },

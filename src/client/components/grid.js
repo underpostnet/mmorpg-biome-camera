@@ -11,25 +11,22 @@ const grid = {
         y: 0,
       },
       x: function () {
-        if (elements.user[0] && !this.forcePositionActive) return elements.user[0].x;
+        if (socketIo.Data.elements.user && socketIo.Data.elements.user[0] && !this.forcePositionActive)
+          return socketIo.Data.elements.user[0].x;
         return this.forcePosition.x;
       },
       y: function () {
-        if (elements.user[0] && !this.forcePositionActive) return elements.user[0].y;
+        if (socketIo.Data.elements.user && socketIo.Data.elements.user[0] && !this.forcePositionActive)
+          return socketIo.Data.elements.user[0].y;
         return this.forcePosition.y;
       },
       grids: ['grid-container', 'grid-container-paint'],
-      UserTestCell: {},
     },
-    updateUserTestCell: function () {
-      if (this.Data.UserTestCell.x !== undefined && this.Data.UserTestCell.y !== undefined)
-        s(`.grid-cell-${this.Data.UserTestCell.x}-${this.Data.UserTestCell.y}`).style.border = null;
-
-      if (this.Data.active && s(`.grid-cell-${this.Data.x()}-${this.Data.y()}`)) {
-        s(`.grid-cell-${this.Data.x()}-${this.Data.y()}`).style.border = `2px solid green`;
-        this.Data.UserTestCell.x = this.Data.x();
-        this.Data.UserTestCell.y = this.Data.y();
-      }
+    updateUserTestCell: function (x, y, width) {
+      s(`.grid-container-position-test`).style.left = `${x * width}px`;
+      s(`.grid-container-position-test`).style.top = `${y * width}px`;
+      s(`.grid-container-position-test`).style.width = `${width}px`;
+      s(`.grid-container-position-test`).style.height = `${width}px`;
     },
     init: function () {
       append(
@@ -48,6 +45,10 @@ const grid = {
               width: 20px;
               height: 20px;
               border: 2px solid blue;
+            }
+            .grid-container-position-test {
+              box-sizing: border-box;
+              border: 2px solid green;
             }
           </style>
 
@@ -74,6 +75,7 @@ const grid = {
                   </div>`
               )
               .join('')}
+            <div class="abs grid-container-position-test"></div>
           </div>
         `
       );
@@ -110,7 +112,8 @@ const grid = {
 
     const x = this.TestController.Data.x();
     const y = this.TestController.Data.y();
-    this.TestController.updateUserTestCell();
+    if (this.TestController.Data.active)
+      this.TestController.updateUserTestCell(x, y, ResponsiveDataAmplitude.minValue / matrixCells);
 
     if (ResponsiveData.minType === 'height') {
       this.Data.grids.concat(this.TestController.Data.active ? this.TestController.Data.grids : []).map((gridId) => {

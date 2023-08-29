@@ -1,7 +1,7 @@
 const pixi = {
   Data: {
     dim: 1200,
-    elements: newInstance(elements),
+    elements: {},
   },
   init: function () {
     this.app = new PIXI.Application({
@@ -15,13 +15,20 @@ const pixi = {
     s('canvas').classList.add('abs');
     s('canvas').classList.add('grid-container-canvas');
   },
-  update: function (type, element) {
-    // index
-    let indexElement = this.Data.elements[type].findIndex((e) => e.id === element.id);
-    if (indexElement === -1) {
-      this.Data.elements[type].push({ id: element.id });
-      indexElement = this.Data.elements[type].length - 1;
-    }
+  removeAll: function () {
+    Object.keys(this.Data.elements).map((type) => {
+      this.Data.elements[type].map((element, indexElement) => {
+        Object.keys(element).map((pixiKey) => this.Data.elements[type][indexElement][pixiKey].destroy());
+      });
+    });
+    this.Data.elements = {};
+  },
+  update: function (element, indexElement) {
+    const { type } = element;
+
+    if (!this.Data.elements[type]) this.Data.elements[type] = [];
+    if (!this.Data.elements[type][indexElement]) this.Data.elements[type][indexElement] = {};
+
     // container
     if (!this.Data.elements[type][indexElement].container) {
       this.Data.elements[type][indexElement].container = new PIXI.Container();
