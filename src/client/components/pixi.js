@@ -15,6 +15,13 @@ const pixi = {
     s('canvas').classList.add('abs');
     s('canvas').classList.add('grid-container-canvas');
   },
+  remove: function (element, indexElement) {
+    const { type } = element;
+    Object.keys(this.Data.elements[type][indexElement]).map((pixiKey) =>
+      this.Data.elements[type][indexElement][pixiKey].destroy()
+    );
+    this.Data.elements[type].splice(indexElement, 1);
+  },
   removeAll: function () {
     Object.keys(this.Data.elements).map((type) => {
       this.Data.elements[type].map((element, indexElement) => {

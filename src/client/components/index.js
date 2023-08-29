@@ -50,7 +50,29 @@ const index = {
     },
     init: function () {
       window.onkeydown = (e) => (console.log('onkeydown', e.key), (this.Data.activeKey[e.key] = true));
-      window.onkeyup = (e) => (console.log('onkeyup', e.key), (this.Data.activeKey[e.key] = undefined));
+      window.onkeyup = (e) => (console.log('onkeyup', e.key), delete this.Data.activeKey[e.key]);
+      setInterval(() => {
+        if (socketIo.Data.elements.user && socketIo.Data.elements.user[0]) {
+          const originElement = newInstance(socketIo.Data.elements.user[0]);
+          if (this.Data.activeKey['ArrowLeft']) {
+            socketIo.Data.elements.user[0].x -= socketIo.Data.elements.user[0].vel;
+          }
+          if (this.Data.activeKey['ArrowRight']) {
+            socketIo.Data.elements.user[0].x += socketIo.Data.elements.user[0].vel;
+          }
+          if (this.Data.activeKey['ArrowUp']) {
+            socketIo.Data.elements.user[0].y -= socketIo.Data.elements.user[0].vel;
+          }
+          if (this.Data.activeKey['ArrowDown']) {
+            socketIo.Data.elements.user[0].y += socketIo.Data.elements.user[0].vel;
+          }
+          if (!objectEquals(originElement, socketIo.Data.elements.user[0])) {
+            pixi.update(socketIo.Data.elements.user[0], 0);
+            grid.viewMatrixController();
+            socketIo.socket.emit('user', JSON.stringify(socketIo.Data.elements.user[0]));
+          }
+        }
+      }, 15);
     },
   },
 };

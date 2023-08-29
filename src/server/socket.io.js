@@ -61,18 +61,40 @@ const io = (httpServer) => {
         },
       ],
       id: socket.id,
+      status: 'live',
     };
     elements[type].push(user);
     clients.push(socket);
+    const clientIndex = clients.indexOf(socket);
     console.log(`socket.io | currents clients: ${clients.length}`);
     socket.emit(type, JSON.stringify(user));
+    clients.map((client, i) => {
+      if (i !== clientIndex) {
+        client.emit(type, JSON.stringify(user));
+        socket.emit(type, JSON.stringify(elements[type][i]));
+      }
+    });
 
     socket.on('disconnect', (reason) => {
       console.log(`socket.io | disconnect ${socket.id} due to reason: ${reason}`);
       const clientIndex = clients.indexOf(socket);
+      clients.map((client, i) => {
+        if (i !== clientIndex)
+          client.emit(type, JSON.stringify({ id: elements[type][clientIndex].id, status: 'disconnect' }));
+      });
       clients.splice(clientIndex, 1);
       elements[type].splice(clientIndex, 1);
       console.log(`socket.io | currents clients: ${clients.length}`);
+    });
+
+    socket.on(type, (...args) => {
+      const element = JSON.parse(args);
+      const clientIndex = clients.indexOf(socket);
+      elements[type][clientIndex] = element;
+      console.log(`socket.io | update ${type} ${args}`);
+      clients.map((client, i) => {
+        if (i !== clientIndex) client.emit(type, args);
+      });
     });
   });
 

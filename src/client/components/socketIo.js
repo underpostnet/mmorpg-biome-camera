@@ -25,6 +25,13 @@ const socketIo = {
         const element = JSON.parse(args);
         if (!this.Data.elements[type]) this.Data.elements[type] = [];
         let indexElement = this.Data.elements[type].findIndex((e) => e.id === element.id);
+
+        if (element.status === 'disconnect' && indexElement > -1) {
+          this.Data.elements[type].splice(indexElement, 1);
+          pixi.remove(element, indexElement);
+          return;
+        }
+
         if (indexElement === -1) {
           this.Data.elements[type].push(element);
           indexElement = this.Data.elements[type].length - 1;
