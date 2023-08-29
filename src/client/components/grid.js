@@ -1,6 +1,6 @@
 const grid = {
   Data: {
-    grids: ['grid-container-canvas'],
+    grids: ['grid-container-canvas', 'grid-container-svg'],
   },
   TestController: {
     Data: {
@@ -100,11 +100,15 @@ const grid = {
         <grid class="abs"> </grid>
       `
     );
-    pixi.appendInitHtml('grid');
-    if (this.TestController.Data.active) this.TestController.init();
+    this.appendGrids();
     index.ResponsiveController.Event['grid'] = () => {
       this.viewMatrixController();
     };
+  },
+  appendGrids: function () {
+    pixi.appendInitHtml('grid');
+    append('grid', html` <div class="abs grid-container-svg"></div> `);
+    if (this.TestController.Data.active) this.TestController.init();
   },
   viewMatrixController: function () {
     const ResponsiveData = index.ResponsiveController.getResponsiveData();

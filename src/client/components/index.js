@@ -9,7 +9,35 @@ const index = {
             color: white;
             font-family: monospace;
           }
+          menu {
+            top: 10px;
+            left: 10px;
+            padding: 0px;
+            margin: 0px;
+            z-index: 1;
+          }
+          button {
+            background: rgba(0, 0, 0, 0.8);
+            /* outline: auto; */
+            padding: 8px;
+            color: yellow;
+            border: 2px solid yellow;
+            cursor: pointer;
+            text-transform: capitalize;
+            margin: 3px;
+            width: -webkit-fill-available;
+            text-align: left;
+            /* 
+            text-transform: uppercase;
+            text-transform: lowercase; 
+            */
+          }
+          button:hover {
+            color: white;
+            border: 2px solid white;
+          }
         </style>
+        <menu class="abs"></menu>
       `
     );
     setTimeout(() => {
