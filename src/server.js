@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { io } from './server/socket.io.js';
 import { views } from './server/views.js';
+import { biomeRouter } from './api/biome/biome.router.js';
 
 dotenv.config();
 
@@ -18,6 +19,9 @@ app.use(express.urlencoded({ extended: true, limit: '20MB' }));
 
 // json formatted response
 app.set('json spaces', 2);
+
+// api
+biomeRouter(app);
 
 // render views
 views(app);

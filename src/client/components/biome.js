@@ -6,6 +6,7 @@ const biome = {
         <button class="in generate-biome">generate biome</button>
         <button class="in download-biome-svg">download biome svg</button>
         <button class="in download-biome-solid-json">download biome solid json</button>
+        <button class="in upload-biome">upload biome</button>
       `
     );
     s(`.generate-biome`).onclick = () => {
@@ -175,6 +176,7 @@ const biome = {
       })();
 
       const solidMatrix = [];
+      const colorMatrix = [];
       const svgRender = html` <svg
         version="1.1"
         xmlns="http://www.w3.org/2000/svg"
@@ -184,6 +186,7 @@ const biome = {
         ${range(0, matrixCellsPaint - 1)
           .map((y) => {
             solidMatrix[y] = [];
+            colorMatrix[y] = [];
             return range(0, matrixCellsPaint - 1)
               .map((x) => {
                 if (matrixSolidBiome[y] && matrixSolidBiome[y][x]) solidMatrix[y].push(1);
@@ -192,6 +195,7 @@ const biome = {
                 const recDim = ResponsiveDataAmplitude.minValue / matrixCellsPaint;
                 // const fill = random(0, 1) === 0 ? colors['red'] : colors['blue'];
                 const fill = matrixColorBiome[y][x] ? matrixColorBiome[y][x] : matrixSeedColorBiome[y][x];
+                colorMatrix[y][x] = `${fill}`;
                 return html`
                   <rect
                     width="${recDim}"
@@ -210,7 +214,8 @@ const biome = {
           .join('')}
       </svg>`;
 
-      console.log(JSONmatrix(solidMatrix));
+      // console.log(JSONmatrix(solidMatrix));
+      // console.log(JSONmatrix(colorMatrix));
 
       htmls('.grid-container-svg', svgRender);
 
@@ -218,6 +223,15 @@ const biome = {
 
       s('.download-biome-svg').onclick = () => downloader(`${idMap}.svg`, mimes['svg'], svgRender);
       s('.download-biome-solid-json').onclick = () => downloader(`${idMap}.json`, mimes['json'], solidMatrix);
+      s('.upload-biome').onclick = async () => {
+        const body = {
+          id: idMap,
+          solid: solidMatrix,
+          svg: svgRender,
+          color: colorMatrix,
+        };
+        const result = await biomeService.biome(body);
+      };
     };
   },
 };

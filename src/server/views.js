@@ -35,6 +35,9 @@ const views = async (app) => {
         mimeSSR +
         ioSSR +
         view.libs.map((lib) => fs.readFileSync(`./src/client/libs/${lib}.js`, 'utf8')).join('') +
+        view.services
+          .map((service) => fs.readFileSync(`./src/client/services/${service}.service.js`, 'utf8'))
+          .join('') +
         view.componets.map((component) => fs.readFileSync(`./src/client/components/${component}.js`, 'utf8')).join('')
       }}())`
     );
