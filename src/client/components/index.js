@@ -19,6 +19,7 @@ const index = {
           button {
             background: rgba(0, 0, 0, 0.8);
             /* outline: auto; */
+            outline: none !important;
             padding: 8px;
             color: yellow;
             border: 2px solid yellow;
