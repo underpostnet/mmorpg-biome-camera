@@ -2,6 +2,7 @@ const pixi = {
   Data: {
     dim: 1200,
     elements: {},
+    floor: {},
   },
   init: function () {
     this.app = new PIXI.Application({
@@ -9,6 +10,19 @@ const pixi = {
       height: this.Data.dim,
       background: 'gray',
     });
+    this.Data.floor.container = new PIXI.Container();
+    this.Data.floor.container.width = this.Data.dim;
+    this.Data.floor.container.height = this.Data.dim;
+    this.Data.floor.container.x = 0;
+    this.Data.floor.container.y = 0;
+    this.app.stage.addChild(this.Data.floor.container);
+
+    this.Data.floor.sprite = PIXI.Sprite.from(`/biomes/${biomeID}/${biomeID}.png`);
+    this.Data.floor.sprite.width = this.Data.dim;
+    this.Data.floor.sprite.height = this.Data.dim;
+    this.Data.floor.sprite.x = 0;
+    this.Data.floor.sprite.y = 0;
+    this.Data.floor.container.addChild(this.Data.floor.sprite);
   },
   appendInitHtml: function (container) {
     s(container).appendChild(this.app.view);

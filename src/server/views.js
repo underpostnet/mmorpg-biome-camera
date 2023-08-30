@@ -4,8 +4,10 @@ import express from 'express';
 import { copyDir, deleteFolderRecursive } from './files.js';
 import { commonFunctions } from './common.js';
 import { srcFormatted, pathViewFormatted } from './formatted.js';
+
 import { ioSSR } from './socket.io.js';
 import { mimeSSR } from './mimes.js';
+import { biomeSSR } from './biome.js';
 
 // view
 import { IndexView } from '../client/views/index.js';
@@ -34,6 +36,7 @@ const views = async (app) => {
         commonFunctions +
         mimeSSR +
         ioSSR +
+        biomeSSR +
         view.libs.map((lib) => fs.readFileSync(`./src/client/libs/${lib}.js`, 'utf8')).join('') +
         view.services
           .map((service) => fs.readFileSync(`./src/client/services/${service}.service.js`, 'utf8'))

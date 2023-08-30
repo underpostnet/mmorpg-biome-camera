@@ -95,7 +95,27 @@ const index = {
           if (this.Data.activeKey['ArrowDown']) {
             socketIo.Data.elements.user[0].y += socketIo.Data.elements.user[0].vel;
           }
+
+          if (socketIo.Data.elements.user[0].x < 0) socketIo.Data.elements.user[0].x = 0;
+          if (socketIo.Data.elements.user[0].y < 0) socketIo.Data.elements.user[0].y = 0;
+          if (socketIo.Data.elements.user[0].x > matrixCells - 1) socketIo.Data.elements.user[0].x = matrixCells - 1;
+          if (socketIo.Data.elements.user[0].y > matrixCells - 1) socketIo.Data.elements.user[0].y = matrixCells - 1;
+
           if (!objectEquals(originElement, socketIo.Data.elements.user[0])) {
+            for (const sumY of range(0, matrixCellsPaintByCell)) {
+              for (const sumX of range(0, matrixCellsPaintByCell)) {
+                if (
+                  !biomeMatrix[parseInt(socketIo.Data.elements.user[0].y * matrixCellsPaintByCell + sumY)] ||
+                  biomeMatrix[parseInt(socketIo.Data.elements.user[0].y * matrixCellsPaintByCell + sumY)][
+                    parseInt(socketIo.Data.elements.user[0].x * matrixCellsPaintByCell + sumX)
+                  ] === 1
+                ) {
+                  socketIo.Data.elements.user[0] = originElement;
+                  return;
+                }
+              }
+            }
+
             pixi.update(socketIo.Data.elements.user[0], 0);
             grid.viewMatrixController();
             socketIo.socket.emit('user', JSON.stringify(socketIo.Data.elements.user[0]));
