@@ -144,15 +144,20 @@ const biome = {
                     !baseCordValidator(xDoor + deltaX, yDoor + deltaY, x + buildLimitX, y + buildLimitY + dimDoor + 1)
                   ) {
                     validDoor = false;
-                    return;
                   }
 
                   if (
                     matrixColorBiome[yDoor + deltaY] &&
+                    matrixColorBiome[yDoor + deltaY][xDoor + deltaX] &&
                     !pavementStyle.includes(matrixColorBiome[yDoor + deltaY][xDoor + deltaX])
                   ) {
                     validDoor = false;
-                    return;
+                  } else if (
+                    matrixSeedColorBiome[yDoor + deltaY] &&
+                    matrixSeedColorBiome[yDoor + deltaY][xDoor + deltaX] &&
+                    !pavementStyle.includes(matrixSeedColorBiome[yDoor + deltaY][xDoor + deltaX])
+                  ) {
+                    velidDoor = false;
                   }
                 })
               );

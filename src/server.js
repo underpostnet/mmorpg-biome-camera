@@ -12,7 +12,7 @@ dotenv.config();
 const app = express();
 
 // parse requests of content-type - application/json
-app.use(express.json({ limit: '20MB' }));
+app.use(express.json({ limit: '100MB' }));
 
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true, limit: '20MB' }));

@@ -4,7 +4,7 @@ const grid = {
   },
   TestController: {
     Data: {
-      active: true,
+      active: false,
       forcePositionActive: false,
       forcePosition: {
         x: 0,
