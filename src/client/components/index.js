@@ -102,11 +102,11 @@ const index = {
           if (socketIo.Data.elements.user[0].y > matrixCells - 1) socketIo.Data.elements.user[0].y = matrixCells - 1;
 
           if (!objectEquals(originElement, socketIo.Data.elements.user[0])) {
-            for (const sumY of range(0, matrixCellsPaintByCell)) {
-              for (const sumX of range(0, matrixCellsPaintByCell)) {
+            for (const sumY of range(0, matrixCellsPaintByCell - 1)) {
+              for (const sumX of range(0, matrixCellsPaintByCell - 1)) {
                 if (
-                  !biomeMatrix[parseInt(socketIo.Data.elements.user[0].y * matrixCellsPaintByCell + sumY)] ||
-                  biomeMatrix[parseInt(socketIo.Data.elements.user[0].y * matrixCellsPaintByCell + sumY)][
+                  !biomeMatrixSolid[parseInt(socketIo.Data.elements.user[0].y * matrixCellsPaintByCell + sumY)] ||
+                  biomeMatrixSolid[parseInt(socketIo.Data.elements.user[0].y * matrixCellsPaintByCell + sumY)][
                     parseInt(socketIo.Data.elements.user[0].x * matrixCellsPaintByCell + sumX)
                   ] === 1
                 ) {

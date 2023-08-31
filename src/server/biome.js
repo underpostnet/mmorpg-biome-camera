@@ -1,12 +1,15 @@
 import { JSONweb } from './formatted.js';
 import fs from 'fs';
 
-const biomeID = 'mapde08-16x3';
+const biomeID = 'mapd16d-16x3';
 
 const biomeSSR = `
     const biomeID = ${JSONweb(biomeID)};
-    const biomeMatrix = ${JSONweb(
+    const biomeMatrixSolid = ${JSONweb(
       JSON.parse(fs.readFileSync(`./src/client/public/biomes/${biomeID}/${biomeID}.solid.json`, 'utf8'))
+    )};
+    const biomeMatrixColor = ${JSONweb(
+      JSON.parse(fs.readFileSync(`./src/client/public/biomes/${biomeID}/${biomeID}.color.json`, 'utf8'))
     )};
 `;
 

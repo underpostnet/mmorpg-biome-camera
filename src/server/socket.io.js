@@ -55,7 +55,7 @@ const io = (httpServer) => {
     const user = {
       x: 1,
       y: 1,
-      vel: 0.3,
+      vel: 1,
       components: [
         {
           id: 'background',
