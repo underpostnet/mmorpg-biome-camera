@@ -53,9 +53,9 @@ const io = (httpServer) => {
     console.log(`socket.io | connection id: ${socket.id}`);
     const type = 'user';
     const user = {
-      x: 1,
-      y: 1,
-      vel: 1,
+      x: 8,
+      y: 5,
+      vel: 0.3,
       components: [
         {
           id: 'background',

@@ -1,7 +1,7 @@
 import { JSONweb } from './formatted.js';
 import fs from 'fs';
 
-const biomeID = 'map99d4-96x3';
+const biomeID = 'map9e65-96x3';
 
 const biomeSSR = `
     const biomeID = ${JSONweb(biomeID)};
