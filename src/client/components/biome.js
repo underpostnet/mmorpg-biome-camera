@@ -7,6 +7,7 @@ const biome = {
         <button class="in generate-biome-city">generate city biome</button>
         <button class="in download-biome-svg">download biome svg</button>
         <button class="in download-biome-solid-json">download biome solid json</button>
+        <button class="in download-biome-color-json">download biome color json</button>
         <button class="in upload-biome">upload biome</button>
       `
     );
@@ -401,7 +402,8 @@ const biome = {
     const idMap = `map${s4()}-${matrixCells}x${matrixCellsPaintByCell}`;
 
     s('.download-biome-svg').onclick = () => downloader(`${idMap}.svg`, mimes['svg'], svgRender);
-    s('.download-biome-solid-json').onclick = () => downloader(`${idMap}.json`, mimes['json'], solidMatrix);
+    s('.download-biome-solid-json').onclick = () => downloader(`${idMap}.solid.json`, mimes['json'], solidMatrix);
+    s('.download-biome-color-json').onclick = () => downloader(`${idMap}.color.json`, mimes['json'], colorMatrix);
     s('.upload-biome').onclick = async () => {
       const body = {
         id: idMap,

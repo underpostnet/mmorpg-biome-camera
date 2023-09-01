@@ -98,12 +98,14 @@ const index = {
 
           if (socketIo.Data.elements.user[0].x < 0) socketIo.Data.elements.user[0].x = 0;
           if (socketIo.Data.elements.user[0].y < 0) socketIo.Data.elements.user[0].y = 0;
-          if (socketIo.Data.elements.user[0].x > matrixCells - 1) socketIo.Data.elements.user[0].x = matrixCells - 1;
-          if (socketIo.Data.elements.user[0].y > matrixCells - 1) socketIo.Data.elements.user[0].y = matrixCells - 1;
+          if (socketIo.Data.elements.user[0].x > matrixCells - socketIo.Data.elements.user[0].dimFactor)
+            socketIo.Data.elements.user[0].x = matrixCells - socketIo.Data.elements.user[0].dimFactor;
+          if (socketIo.Data.elements.user[0].y > matrixCells - socketIo.Data.elements.user[0].dimFactor)
+            socketIo.Data.elements.user[0].y = matrixCells - socketIo.Data.elements.user[0].dimFactor;
 
           if (!objectEquals(originElement, socketIo.Data.elements.user[0])) {
-            for (const sumY of range(0, matrixCellsPaintByCell - 1)) {
-              for (const sumX of range(0, matrixCellsPaintByCell - 1)) {
+            for (const sumY of range(0, matrixCellsPaintByCell * socketIo.Data.elements.user[0].dimFactor - 1)) {
+              for (const sumX of range(0, matrixCellsPaintByCell * socketIo.Data.elements.user[0].dimFactor - 1)) {
                 if (
                   !biomeMatrixSolid[parseInt(socketIo.Data.elements.user[0].y * matrixCellsPaintByCell + sumY)] ||
                   biomeMatrixSolid[parseInt(socketIo.Data.elements.user[0].y * matrixCellsPaintByCell + sumY)][

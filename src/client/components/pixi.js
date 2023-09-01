@@ -72,8 +72,8 @@ const pixi = {
     // container
     if (!this.Data.elements[type][indexElement].container) {
       this.Data.elements[type][indexElement].container = new PIXI.Container();
-      this.Data.elements[type][indexElement].container.width = this.Data.dim / matrixCells;
-      this.Data.elements[type][indexElement].container.height = this.Data.dim / matrixCells;
+      this.Data.elements[type][indexElement].container.width = (this.Data.dim / matrixCells) * element.dimFactor;
+      this.Data.elements[type][indexElement].container.height = (this.Data.dim / matrixCells) * element.dimFactor;
       this.app.stage.addChild(this.Data.elements[type][indexElement].container);
     }
     this.Data.elements[type][indexElement].container.x = element.x * (this.Data.dim / matrixCells);
@@ -88,8 +88,10 @@ const pixi = {
             this.Data.elements[type][indexElement][component.id] = new PIXI.Sprite(PIXI.Texture.WHITE);
             this.Data.elements[type][indexElement][component.id].x = 0;
             this.Data.elements[type][indexElement][component.id].y = 0;
-            this.Data.elements[type][indexElement][component.id].width = this.Data.dim / matrixCells;
-            this.Data.elements[type][indexElement][component.id].height = this.Data.dim / matrixCells;
+            this.Data.elements[type][indexElement][component.id].width =
+              (this.Data.dim / matrixCells) * element.dimFactor;
+            this.Data.elements[type][indexElement][component.id].height =
+              (this.Data.dim / matrixCells) * element.dimFactor;
             this.Data.elements[type][indexElement][component.id].tint = component.color;
             this.Data.elements[type][indexElement][component.id].visible = component.visible;
             this.Data.elements[type][indexElement].container.addChild(
@@ -107,8 +109,9 @@ const pixi = {
                   this.Data.elements[type][indexElement][src] = PIXI.Sprite.from(src);
                   this.Data.elements[type][indexElement][src].x = 0;
                   this.Data.elements[type][indexElement][src].y = 0;
-                  this.Data.elements[type][indexElement][src].width = this.Data.dim / matrixCells;
-                  this.Data.elements[type][indexElement][src].height = this.Data.dim / matrixCells;
+                  this.Data.elements[type][indexElement][src].width = (this.Data.dim / matrixCells) * element.dimFactor;
+                  this.Data.elements[type][indexElement][src].height =
+                    (this.Data.dim / matrixCells) * element.dimFactor;
                   this.Data.elements[type][indexElement][src].visible =
                     position.directions.includes(element.direction) && sprite === 'stop' && frame === 0;
                   this.Data.elements[type][indexElement].container.addChild(

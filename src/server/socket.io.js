@@ -53,9 +53,10 @@ const io = (httpServer) => {
     console.log(`socket.io | connection id: ${socket.id}`);
     const type = 'user';
     const user = {
-      x: 8,
-      y: 5,
+      x: 12,
+      y: 1,
       vel: 0.3,
+      dimFactor: 1,
       direction: 'left',
       components: [
         {
@@ -66,7 +67,7 @@ const io = (httpServer) => {
         },
         {
           id: 'skins',
-          skin: 'anon',
+          skin: 'agent',
           frameInterval: 200,
           positions: [
             { sprites: { stop: { id: '02', frames: 0 }, mov: { id: '12', frames: 1 } }, directions: ['up'] },

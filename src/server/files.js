@@ -30,8 +30,8 @@ const copyDir = async (src, dest) => {
     let destPath = path.join(dest, entry.name);
 
     entry.isDirectory()
-      ? await copyDir(srcPath, destPath).catch((err) => console.log(colors.red(err)))
-      : await _fs.copyFile(srcPath, destPath).catch((err) => console.log(colors.red(err)));
+      ? await copyDir(srcPath, destPath).catch((err) => console.log(err))
+      : await _fs.copyFile(srcPath, destPath).catch((err) => console.log(err));
   }
 };
 

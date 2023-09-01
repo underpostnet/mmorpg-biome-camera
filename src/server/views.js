@@ -21,7 +21,7 @@ const views = async (app) => {
   await copyDir('./src/client/public', publicDirectory);
 
   let viewRender;
-  eval(srcFormatted(fs.readFileSync('./src/client/eval/view-render.js', 'utf8'), 'utf8'));
+  eval(srcFormatted(fs.readFileSync('./src/client/ssr/view-render.js', 'utf8'), 'utf8'));
 
   [IndexView].map((view) => {
     console.log(view);
