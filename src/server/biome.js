@@ -2,9 +2,9 @@ import { JSONweb } from './formatted.js';
 import fs from 'fs';
 import { random, range } from './common.js';
 
-// city map99d4-96x3
-// fores map9e65-96x3
-const biomeID = 'map99d4-96x3';
+// city-99d4-96x3
+// forest-9e65-96x3
+const biomeID = 'city-99d4-96x3';
 const matrixCells = 16 * 6;
 const matrixCellsPaintByCell = 3;
 const matrixCellsAmplitude = 6;
@@ -49,9 +49,9 @@ const biomeSSR = `
     const matrixCells = ${matrixCells};
     const matrixCellsAmplitude = ${matrixCellsAmplitude};
     const matrixCellsPaintByCell = ${matrixCellsPaintByCell};
-    const biomeID = ${JSONweb(biomeID)};
-    const biomeMatrixSolid = ${JSONweb(biomeMatrixSolid)};
-    const biomeMatrixColor = ${JSONweb(biomeMatrixColor)};
+    let biomeID = ${JSONweb(biomeID)};
+    let biomeMatrixSolid = ${JSONweb(biomeMatrixSolid)};
+    let biomeMatrixColor = ${JSONweb(biomeMatrixColor)};
     const validateBiomeCollision = ${validateBiomeCollision};
     const setRandomAvailablePoint = ${setRandomAvailablePoint};
 `;

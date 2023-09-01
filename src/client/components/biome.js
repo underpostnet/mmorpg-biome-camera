@@ -5,10 +5,6 @@ const biome = {
       html`
         <button class="in generate-biome-forest">generate forest biome</button>
         <button class="in generate-biome-city">generate city biome</button>
-        <button class="in download-biome-svg">download biome svg</button>
-        <button class="in download-biome-solid-json">download biome solid json</button>
-        <button class="in download-biome-color-json">download biome color json</button>
-        <button class="in upload-biome">upload biome</button>
       `
     );
     s(`.generate-biome-city`).onclick = () => {
@@ -182,7 +178,7 @@ const biome = {
         });
       });
 
-      this.renderSVG(matrixCellsPaint, matrixSeedColorBiome, matrixColorBiome, matrixSolidBiome);
+      this.renderSVG('city', matrixCellsPaint, matrixSeedColorBiome, matrixColorBiome, matrixSolidBiome);
     };
     s(`.generate-biome-forest`).onclick = () => {
       const matrixCellsPaint = matrixCells * matrixCellsPaintByCell;
@@ -349,10 +345,10 @@ const biome = {
         });
       })();
 
-      this.renderSVG(matrixCellsPaint, matrixSeedColorBiome, matrixColorBiome, matrixSolidBiome);
+      this.renderSVG('forest', matrixCellsPaint, matrixSeedColorBiome, matrixColorBiome, matrixSolidBiome);
     };
   },
-  renderSVG: function (matrixCellsPaint, matrixSeedColorBiome, matrixColorBiome, matrixSolidBiome) {
+  renderSVG: async function (typeBiome, matrixCellsPaint, matrixSeedColorBiome, matrixColorBiome, matrixSolidBiome) {
     const ResponsiveDataAmplitude = index.ResponsiveController.getResponsiveDataAmplitude();
     const solidMatrix = [];
     const colorMatrix = [];
@@ -397,22 +393,29 @@ const biome = {
     console.log(JSONmatrix(solidMatrix));
     // console.log(JSONmatrix(colorMatrix));
 
-    htmls('.grid-container-svg', svgRender);
+    // htmls('.grid-container-svg', svgRender);
+    // downloader(`${idMap}.svg`, mimes['svg'], svgRender);
+    // downloader(`${idMap}.solid.json`, mimes['json'], solidMatrix);
+    // downloader(`${idMap}.color.json`, mimes['json'], colorMatrix);
 
-    const idMap = `map${s4()}-${matrixCells}x${matrixCellsPaintByCell}`;
+    const idMap = `${typeBiome}-${s4()}-${matrixCells}x${matrixCellsPaintByCell}`;
 
-    s('.download-biome-svg').onclick = () => downloader(`${idMap}.svg`, mimes['svg'], svgRender);
-    s('.download-biome-solid-json').onclick = () => downloader(`${idMap}.solid.json`, mimes['json'], solidMatrix);
-    s('.download-biome-color-json').onclick = () => downloader(`${idMap}.color.json`, mimes['json'], colorMatrix);
-    s('.upload-biome').onclick = async () => {
-      const body = {
-        id: idMap,
-        solid: solidMatrix,
-        svg: svgRender,
-        color: colorMatrix,
-      };
-      const result = await biomeService.biome(body);
+    biomeID = idMap;
+    biomeMatrixSolid = solidMatrix;
+    biomeMatrixColor = colorMatrix;
+    socketIo.Data.elements.user[0] = setRandomAvailablePoint(socketIo.Data.elements.user[0]);
+
+    const body = {
+      id: idMap,
+      solid: solidMatrix,
+      svg: svgRender,
+      color: colorMatrix,
     };
+    await biomeService.biome(body);
+
+    pixi.setFloor();
+    pixi.update('user', socketIo.Data.elements.user[0], 0);
+    grid.viewMatrixController();
   },
 };
 

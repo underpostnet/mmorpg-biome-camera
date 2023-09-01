@@ -1,5 +1,6 @@
 import fs from 'fs';
 import sharp from 'sharp';
+import { copyDir } from '../../server/files.js';
 
 const directory = `./src/client/public/biomes`;
 
@@ -28,6 +29,12 @@ const biome = async (req, res) => {
         .then((info) => resolve(info))
         .catch((err) => reject(err));
     });
+
+    const publicDirectory = `./public/biomes`;
+
+    fs.mkdirSync(`${publicDirectory}/${req.body.id}`, { recursive: true });
+
+    await copyDir(`${directory}/${req.body.id}`, `${publicDirectory}/${req.body.id}`);
 
     return res.status(200).json({
       status: 'success',
