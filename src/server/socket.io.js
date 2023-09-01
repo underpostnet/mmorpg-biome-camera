@@ -56,12 +56,31 @@ const io = (httpServer) => {
       x: 8,
       y: 5,
       vel: 0.3,
+      direction: 'left',
       components: [
         {
           id: 'background',
           color: 'red',
-          active: true,
+          active: false,
           visible: true,
+        },
+        {
+          id: 'skins',
+          skin: 'anon',
+          frameInterval: 200,
+          positions: [
+            { sprites: { stop: { id: '02', frames: 0 }, mov: { id: '12', frames: 1 } }, directions: ['up'] },
+            {
+              sprites: { stop: { id: '04', frames: 0 }, mov: { id: '14', frames: 1 } },
+              directions: ['left', 'down-left', 'up-left'],
+            },
+            {
+              sprites: { stop: { id: '06', frames: 0 }, mov: { id: '16', frames: 1 } },
+              directions: ['right', 'down-right', 'up-right'],
+            },
+            { sprites: { stop: { id: '08', frames: 0 }, mov: { id: '18', frames: 1 } }, directions: ['down'] },
+          ],
+          active: true,
         },
       ],
       id: socket.id,

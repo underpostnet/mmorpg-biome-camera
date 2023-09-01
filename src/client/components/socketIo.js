@@ -32,12 +32,26 @@ const socketIo = {
           return;
         }
 
+        let direction = undefined;
         if (indexElement === -1) {
           this.Data.elements[type].push(element);
           indexElement = this.Data.elements[type].length - 1;
-        } else this.Data.elements[type][indexElement] = element;
+        } else {
+          if (
+            this.Data.elements[type][indexElement].x !== element.x ||
+            this.Data.elements[type][indexElement].y !== element.y
+          ) {
+            direction = getJoystickDirection(
+              this.Data.elements[type][indexElement].x,
+              this.Data.elements[type][indexElement].y,
+              element.x,
+              element.y
+            );
+          }
+          this.Data.elements[type][indexElement] = element;
+        }
 
-        pixi.update(type, element, indexElement);
+        pixi.update(type, element, indexElement, direction);
       })
     );
   },

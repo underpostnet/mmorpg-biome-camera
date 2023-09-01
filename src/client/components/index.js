@@ -116,7 +116,15 @@ const index = {
               }
             }
 
-            pixi.update('user', socketIo.Data.elements.user[0], 0);
+            const direction = getJoystickDirection(
+              originElement.x,
+              originElement.y,
+              socketIo.Data.elements.user[0].x,
+              socketIo.Data.elements.user[0].y
+            );
+            socketIo.Data.elements.user[0].direction = direction;
+
+            pixi.update('user', socketIo.Data.elements.user[0], 0, direction);
             grid.viewMatrixController();
             socketIo.socket.emit('user', JSON.stringify(socketIo.Data.elements.user[0]));
           }

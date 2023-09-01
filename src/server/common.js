@@ -293,29 +293,29 @@ function getJoystickDirection(x1, y1, x2, y2) {
   // Map the angle to one of the eight directions
   let direction;
   if (degrees >= 337.5 || degrees < 22.5) {
-    // direction = 'right';
-    direction = 'East';
+    direction = 'right';
+    // direction = 'East';
   } else if (degrees >= 22.5 && degrees < 67.5) {
-    // direction = 'up-right';
-    direction = 'South East';
+    direction = 'down-right';
+    // direction = 'South East';
   } else if (degrees >= 67.5 && degrees < 112.5) {
-    // direction = 'up';
-    direction = 'South';
+    direction = 'down';
+    // direction = 'South';
   } else if (degrees >= 112.5 && degrees < 157.5) {
-    // direction = 'up-left';
-    direction = 'South West';
+    direction = 'down-left';
+    // direction = 'South West';
   } else if (degrees >= 157.5 && degrees < 202.5) {
-    // direction = 'left';
-    direction = 'West';
+    direction = 'left';
+    // direction = 'West';
   } else if (degrees >= 202.5 && degrees < 247.5) {
-    // direction = 'down-left';
-    direction = 'North West';
+    direction = 'up-left';
+    // direction = 'North West';
   } else if (degrees >= 247.5 && degrees < 292.5) {
-    // direction = 'down';
-    direction = 'North';
+    direction = 'up';
+    // direction = 'North';
   } else if (degrees >= 292.5 && degrees < 337.5) {
-    // direction = 'down-right';
-    direction = 'North East';
+    direction = 'up-right';
+    // direction = 'North East';
   }
 
   return direction;
