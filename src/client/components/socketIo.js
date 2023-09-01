@@ -26,32 +26,41 @@ const socketIo = {
         if (!this.Data.elements[type]) this.Data.elements[type] = [];
         let indexElement = this.Data.elements[type].findIndex((e) => e.id === element.id);
 
-        if (element.status === 'disconnect' && indexElement > -1) {
-          this.Data.elements[type].splice(indexElement, 1);
-          pixi.remove(type, element, indexElement);
-          return;
+        switch (element.status) {
+          case 'disconnect':
+            if (indexElement > -1) {
+              this.Data.elements[type].splice(indexElement, 1);
+              pixi.remove(type, element, indexElement);
+              return;
+            }
+            break;
+          case 'new':
+            if (indexElement === -1) {
+              this.Data.elements[type].push(element);
+              indexElement = this.Data.elements[type].length - 1;
+              pixi.update(type, element, indexElement);
+            }
+            break;
+          case 'update':
+            if (
+              this.Data.elements[type][indexElement].x !== element.x ||
+              this.Data.elements[type][indexElement].y !== element.y
+            ) {
+              const direction = getJoystickDirection(
+                this.Data.elements[type][indexElement].x,
+                this.Data.elements[type][indexElement].y,
+                element.x,
+                element.y
+              );
+              Object.keys(element).map((attr) => {
+                this.Data.elements[type][indexElement][attr] = element[attr];
+              });
+              pixi.update(type, this.Data.elements[type][indexElement], indexElement, direction);
+            }
+            break;
+          default:
+            break;
         }
-
-        let direction = undefined;
-        if (indexElement === -1) {
-          this.Data.elements[type].push(element);
-          indexElement = this.Data.elements[type].length - 1;
-        } else {
-          if (
-            this.Data.elements[type][indexElement].x !== element.x ||
-            this.Data.elements[type][indexElement].y !== element.y
-          ) {
-            direction = getJoystickDirection(
-              this.Data.elements[type][indexElement].x,
-              this.Data.elements[type][indexElement].y,
-              element.x,
-              element.y
-            );
-          }
-          this.Data.elements[type][indexElement] = element;
-        }
-
-        pixi.update(type, element, indexElement, direction);
       })
     );
   },

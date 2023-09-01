@@ -47,6 +47,7 @@ const io = (httpServer) => {
       vel: 0.3,
       dimFactor: 1,
       direction: 'left',
+      status: 'new',
       components: [
         {
           id: 'background',
@@ -74,7 +75,6 @@ const io = (httpServer) => {
         },
       ],
       id: socket.id,
-      status: 'live',
     });
     elements[type].push(user);
     clients.push(socket);
@@ -84,7 +84,7 @@ const io = (httpServer) => {
     clients.map((client, i) => {
       if (i !== clientIndex) {
         client.emit(type, JSON.stringify(user));
-        socket.emit(type, JSON.stringify(elements[type][i]));
+        socket.emit(type, JSON.stringify({ ...elements[type][i], status: 'new' }));
       }
     });
 
@@ -102,12 +102,21 @@ const io = (httpServer) => {
 
     socket.on(type, (...args) => {
       const element = JSON.parse(args);
-      const clientIndex = clients.indexOf(socket);
-      elements[type][clientIndex] = element;
-      console.log(`socket.io | update ${type} ${args}`);
-      clients.map((client, i) => {
-        if (i !== clientIndex) client.emit(type, args);
-      });
+      switch (element.status) {
+        case 'update':
+          const clientIndex = clients.indexOf(socket);
+          delete element.id;
+          Object.keys(element).map((attr) => {
+            elements[type][clientIndex][attr] = element[attr];
+          });
+          console.log(`socket.io | update ${type} ${args}`);
+          clients.map((client, i) => {
+            if (i !== clientIndex) client.emit(type, args);
+          });
+          break;
+        default:
+          break;
+      }
     });
   });
 

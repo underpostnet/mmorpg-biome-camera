@@ -119,7 +119,15 @@ const index = {
 
             pixi.update('user', socketIo.Data.elements.user[0], 0, direction);
             grid.viewMatrixController();
-            socketIo.socket.emit('user', JSON.stringify(socketIo.Data.elements.user[0]));
+            socketIo.socket.emit(
+              'user',
+              JSON.stringify({
+                x: socketIo.Data.elements.user[0].x,
+                y: socketIo.Data.elements.user[0].y,
+                id: socketIo.Data.elements.user[0].id,
+                status: 'update',
+              })
+            );
           }
         }
       }, 15);
