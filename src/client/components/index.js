@@ -104,18 +104,9 @@ const index = {
             socketIo.Data.elements.user[0].y = matrixCells - socketIo.Data.elements.user[0].dimFactor;
 
           if (!objectEquals(originElement, socketIo.Data.elements.user[0])) {
-            for (const sumY of range(0, matrixCellsPaintByCell * socketIo.Data.elements.user[0].dimFactor - 1)) {
-              for (const sumX of range(0, matrixCellsPaintByCell * socketIo.Data.elements.user[0].dimFactor - 1)) {
-                if (
-                  !biomeMatrixSolid[parseInt(socketIo.Data.elements.user[0].y * matrixCellsPaintByCell + sumY)] ||
-                  biomeMatrixSolid[parseInt(socketIo.Data.elements.user[0].y * matrixCellsPaintByCell + sumY)][
-                    parseInt(socketIo.Data.elements.user[0].x * matrixCellsPaintByCell + sumX)
-                  ] === 1
-                ) {
-                  socketIo.Data.elements.user[0] = originElement;
-                  return;
-                }
-              }
+            if (validateBiomeCollision(socketIo.Data.elements.user[0])) {
+              socketIo.Data.elements.user[0] = originElement;
+              return;
             }
 
             const direction = getJoystickDirection(

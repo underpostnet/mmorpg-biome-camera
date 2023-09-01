@@ -1,15 +1,9 @@
 import { Server } from 'socket.io';
 import { JSONweb } from './formatted.js';
 import dotenv from 'dotenv';
+import { setRandomAvailablePoint } from './biome.js';
 dotenv.config();
 
-const matrixCells = 16 * 6;
-const matrixCellsPaintByCell = 3;
-const matrixCellsAmplitude = 6;
-
-// const matrixCells = 16;
-// const matrixCellsPaintByCell = 3;
-// const matrixCellsAmplitude = 2;
 const ioHost = `ws://localhost:${process.env.PORT}`;
 
 const types = ['user', 'bot'];
@@ -17,9 +11,6 @@ const elements = {};
 types.map((type) => (elements[type] = []));
 
 const ioSSR = `
-  const matrixCells = ${matrixCells};
-  const matrixCellsAmplitude = ${matrixCellsAmplitude};
-  const matrixCellsPaintByCell = ${matrixCellsPaintByCell};
   const ioHost = ${JSONweb(ioHost)};
   const types = ${JSONweb(types)};
         `;
@@ -52,9 +43,7 @@ const io = (httpServer) => {
     // const ip = socket.handshake.address;
     console.log(`socket.io | connection id: ${socket.id}`);
     const type = 'user';
-    const user = {
-      x: 12,
-      y: 1,
+    const user = setRandomAvailablePoint({
       vel: 0.3,
       dimFactor: 1,
       direction: 'left',
@@ -86,7 +75,7 @@ const io = (httpServer) => {
       ],
       id: socket.id,
       status: 'live',
-    };
+    });
     elements[type].push(user);
     clients.push(socket);
     const clientIndex = clients.indexOf(socket);
