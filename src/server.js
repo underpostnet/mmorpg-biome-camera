@@ -24,7 +24,7 @@ app.set('json spaces', 2);
 biomeRouter(app);
 
 // render views
-views(app);
+await views(app);
 
 // instance server
 const server = createServer({}, app);
