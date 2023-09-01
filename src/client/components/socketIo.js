@@ -28,7 +28,7 @@ const socketIo = {
 
         if (element.status === 'disconnect' && indexElement > -1) {
           this.Data.elements[type].splice(indexElement, 1);
-          pixi.remove(element, indexElement);
+          pixi.remove(type, element, indexElement);
           return;
         }
 
@@ -37,7 +37,7 @@ const socketIo = {
           indexElement = this.Data.elements[type].length - 1;
         } else this.Data.elements[type][indexElement] = element;
 
-        pixi.update(element, indexElement);
+        pixi.update(type, element, indexElement);
       })
     );
   },

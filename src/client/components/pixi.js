@@ -29,8 +29,7 @@ const pixi = {
     s('canvas').classList.add('abs');
     s('canvas').classList.add('grid-container-canvas');
   },
-  remove: function (element, indexElement) {
-    const { type } = element;
+  remove: function (type, element, indexElement) {
     Object.keys(this.Data.elements[type][indexElement]).map((pixiKey) =>
       this.Data.elements[type][indexElement][pixiKey].destroy()
     );
@@ -44,9 +43,7 @@ const pixi = {
     });
     this.Data.elements = {};
   },
-  update: function (element, indexElement) {
-    const { type } = element;
-
+  update: function (type, element, indexElement) {
     if (!this.Data.elements[type]) this.Data.elements[type] = [];
     if (!this.Data.elements[type][indexElement]) this.Data.elements[type][indexElement] = {};
 

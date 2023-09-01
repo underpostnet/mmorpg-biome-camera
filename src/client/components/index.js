@@ -116,7 +116,7 @@ const index = {
               }
             }
 
-            pixi.update(socketIo.Data.elements.user[0], 0);
+            pixi.update('user', socketIo.Data.elements.user[0], 0);
             grid.viewMatrixController();
             socketIo.socket.emit('user', JSON.stringify(socketIo.Data.elements.user[0]));
           }
