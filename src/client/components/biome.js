@@ -410,6 +410,7 @@ const biome = {
       solid: solidMatrix,
       svg: svgRender,
       color: colorMatrix,
+      typeBiome,
     };
     await biomeService.biome(body);
 

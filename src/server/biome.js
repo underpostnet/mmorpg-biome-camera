@@ -14,10 +14,10 @@ const matrixCellsAmplitude = 6;
 // const matrixCellsAmplitude = 2;
 
 const biomeMatrixSolid = JSON.parse(
-  fs.readFileSync(`./src/client/public/biomes/${biomeID}/${biomeID}.solid.json`, 'utf8')
+  fs.readFileSync(`./src/client/public/biomes/${biomeID.split('-')[0]}/${biomeID}/${biomeID}.solid.json`, 'utf8')
 );
 const biomeMatrixColor = JSON.parse(
-  fs.readFileSync(`./src/client/public/biomes/${biomeID}/${biomeID}.color.json`, 'utf8')
+  fs.readFileSync(`./src/client/public/biomes/${biomeID.split('-')[0]}/${biomeID}/${biomeID}.color.json`, 'utf8')
 );
 
 const validateBiomeCollision = (element) => {

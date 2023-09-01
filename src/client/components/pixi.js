@@ -24,7 +24,7 @@ const pixi = {
   },
   setFloor: function () {
     if (this.Data.floor.sprite) this.Data.floor.sprite.destroy();
-    this.Data.floor.sprite = PIXI.Sprite.from(`/biomes/${biomeID}/${biomeID}.png`);
+    this.Data.floor.sprite = PIXI.Sprite.from(`/biomes/${biomeID.split('-')[0]}/${biomeID}/${biomeID}.png`);
     this.Data.floor.sprite.width = this.Data.dim;
     this.Data.floor.sprite.height = this.Data.dim;
     this.Data.floor.sprite.x = 0;
