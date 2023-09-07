@@ -8,6 +8,7 @@ const biome = {
       `
     );
     s(`.generate-biome-city`).onclick = () => {
+      s('.global-loading-content').style.display = 'block';
       const matrixCellsPaint = matrixCells * matrixCellsPaintByCell;
 
       const buildingStyles = [
@@ -181,6 +182,7 @@ const biome = {
       this.renderSVG('city', matrixCellsPaint, matrixSeedColorBiome, matrixColorBiome, matrixSolidBiome);
     };
     s(`.generate-biome-forest`).onclick = () => {
+      s('.global-loading-content').style.display = 'block';
       const matrixCellsPaint = matrixCells * matrixCellsPaintByCell;
 
       // phenotypes
@@ -417,6 +419,7 @@ const biome = {
     pixi.setFloor();
     pixi.update('user', socketIo.Data.elements.user[0], 0);
     grid.viewMatrixController();
+    s('.global-loading-content').style.display = 'none';
   },
 };
 

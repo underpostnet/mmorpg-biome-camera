@@ -4,10 +4,14 @@ const index = {
       'body',
       html`
         <style>
+          @font-face {
+            font-family: 'retro-font';
+            src: URL('/fonts/PressStart2P.ttf') format('truetype');
+          }
           body {
             background: black;
             color: white;
-            font-family: monospace;
+            font-family: 'retro-font';
           }
           menu {
             top: 10px;
@@ -28,17 +32,37 @@ const index = {
             margin: 3px;
             width: -webkit-fill-available;
             text-align: left;
-            /* 
+            font-family: 'retro-font';
+            /*
             text-transform: uppercase;
-            text-transform: lowercase; 
+            text-transform: lowercase;
             */
           }
           button:hover {
             color: white;
             border: 2px solid white;
           }
+          .global-loading-content {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1;
+            color: black;
+            ${borderChar(2, 'white')};
+          }
+          .global-loading-img {
+            width: 30px;
+            height: 30px;
+          }
         </style>
         <menu class="abs"></menu>
+        <div class="fix center global-loading-content" style="display: none">
+          <div class="abs center">
+            LOADING
+            <br />
+            <img class="inl global-loading-img" src="/gifts/points-loading.gif" />
+          </div>
+        </div>
       `
     );
     setTimeout(() => {

@@ -57,7 +57,7 @@ const io = (httpServer) => {
         },
         {
           id: 'skins',
-          skin: 'agent',
+          skin: 'eiri',
           frameInterval: 200,
           positions: [
             { sprites: { stop: { id: '02', frames: 0 }, mov: { id: '12', frames: 1 } }, directions: ['up'] },
