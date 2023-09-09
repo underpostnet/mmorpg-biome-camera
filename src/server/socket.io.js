@@ -3,12 +3,12 @@ import { JSONweb } from './formatted.js';
 import dotenv from 'dotenv';
 import { setRandomAvailablePoint, validateBiomeCollision, biomeMatrixSolid } from './biome.js';
 import pathfinding from 'pathfinding';
-import { getId, insertTransitionCoordinates, range } from './common.js';
+import { getId, insertTransitionCoordinates, newInstance, range } from './common.js';
 
 dotenv.config();
 
 const ioHost = `ws://localhost:${process.env.PORT}`;
-const globalTimeEventInterval = 50;
+const globalTimeEventInterval = 25;
 const types = ['user', 'bot'];
 const elements = {};
 types.map((type) => (elements[type] = []));
@@ -27,7 +27,7 @@ const params = {
 
 range(0, 30).map((i) => {
   const bot = setRandomAvailablePoint({
-    vel: 0.3,
+    vel: 0.1,
     dimFactor: 1,
     direction: 'down',
     status: 'new',
@@ -68,7 +68,9 @@ range(0, 30).map((i) => {
   params.bot[bot.id] = {
     path: [],
     biomeMatrixSolid: biomeMatrixSolidBot,
-    maxLengthPath: 10,
+    originX: newInstance(bot.x),
+    originY: newInstance(bot.y),
+    rangePositionSearch: 2,
   };
   bots.push(bot);
 });
@@ -100,7 +102,7 @@ const io = (httpServer) => {
     console.log(`socket.io | connection id: ${socket.id}`);
     const type = 'user';
     const user = setRandomAvailablePoint({
-      vel: 0.3,
+      vel: 0.2,
       dimFactor: 1,
       direction: 'down',
       status: 'new',
@@ -187,7 +189,14 @@ const io = (httpServer) => {
     setInterval(() => {
       if (params.bot[bot.id] && params.bot[bot.id].path.length === 0) {
         while (params.bot[bot.id].path.length === 0) {
-          const endPositionBot = setRandomAvailablePoint({ ...bot });
+          const endPositionBot = setRandomAvailablePoint(
+            { ...bot },
+            {
+              originX: params.bot[bot.id].originX,
+              originY: params.bot[bot.id].originY,
+              rangePositionSearch: params.bot[bot.id].rangePositionSearch,
+            }
+          );
           params.bot[bot.id].path = finder.findPath(
             parseInt(bots[i].x),
             parseInt(bots[i].y),
@@ -202,9 +211,6 @@ const io = (httpServer) => {
           params.bot[bot.id].path = params.bot[bot.id].path
             .map((point, i) => (i % parseInt(bot.vel) === 0 ? point : null))
             .filter((point) => point !== null);
-
-        if (params.bot[bot.id].maxLengthPath && params.bot[bot.id].path.length > params.bot[bot.id].maxLengthPath)
-          params.bot[bot.id].path = params.bot[bot.id].path.slice(0, params.bot[bot.id].maxLengthPath);
       }
       bots[i].x = params.bot[bot.id].path[0][0];
       bots[i].y = params.bot[bot.id].path[0][1];

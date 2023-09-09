@@ -35,11 +35,23 @@ const validateBiomeCollision = (element) => {
   return false;
 };
 
-const setRandomAvailablePoint = (element) => {
+const setRandomAvailablePoint = (element, limitOptions) => {
   let attemps = 0;
   while ((attemps === 0 || validateBiomeCollision(element)) && attemps < matrixCells * matrixCells) {
-    element.x = random(0, matrixCells - element.dimFactor);
-    element.y = random(0, matrixCells - element.dimFactor);
+    element.x =
+      limitOptions === undefined
+        ? random(0, matrixCells - element.dimFactor)
+        : random(
+            limitOptions.originX - limitOptions.rangePositionSearch,
+            limitOptions.originX + limitOptions.rangePositionSearch
+          );
+    element.y =
+      limitOptions === undefined
+        ? random(0, matrixCells - element.dimFactor)
+        : random(
+            limitOptions.originY - limitOptions.rangePositionSearch,
+            limitOptions.originY + limitOptions.rangePositionSearch
+          );
     attemps++;
   }
   return element;
