@@ -21,7 +21,7 @@ const socketIo = {
 
     types.map((type) =>
       this.socket.on(type, (...args) => {
-        console.log(`socket.io event: update ${type} | reason: ${args}`);
+        // console.log(`socket.io event: update ${type} | reason: ${args}`);
         const element = JSON.parse(args);
         if (!this.Data.elements[type]) this.Data.elements[type] = [];
         let indexElement = this.Data.elements[type].findIndex((e) => e.id === element.id);

@@ -154,7 +154,7 @@ const index = {
             );
           }
         }
-      }, 15);
+      }, globalTimeEventInterval);
     },
   },
 };

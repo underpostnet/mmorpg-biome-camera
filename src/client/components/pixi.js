@@ -141,7 +141,7 @@ const pixi = {
               };
               clearSprites();
 
-              const dataComponent = socketIo.Data.elements.user[indexElement].components.find((c) => c.id === 'skins');
+              const dataComponent = socketIo.Data.elements[type][indexElement].components.find((c) => c.id === 'skins');
               const dataPosition = dataComponent.positions.find((c) => c.directions.includes(direction));
 
               let frame = 0;

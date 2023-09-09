@@ -4,7 +4,7 @@ const range = (start, end) => {
   return Array.apply(0, Array(end - start + 1)).map((element, index) => index + start);
 };
 
-const getId = (arr, keyId = 'id', sufix = 'x') => {
+const getId = (arr, keyId = 'id', sufix = '') => {
   let _id;
   while (arr.find((element) => element[keyId] === _id) || !_id)
     _id = sufix + (s4() + s4() + s4() + s4() + s4()).slice(1);
