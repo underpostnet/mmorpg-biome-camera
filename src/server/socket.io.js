@@ -3,7 +3,7 @@ import { JSONweb } from './formatted.js';
 import dotenv from 'dotenv';
 import { setRandomAvailablePoint, validateBiomeCollision, biomeMatrixSolid } from './biome.js';
 import pathfinding from 'pathfinding';
-import { JSONmatrix, getId, range } from './common.js';
+import { getId, insertTransitionCoordinates, range } from './common.js';
 
 dotenv.config();
 
@@ -68,7 +68,7 @@ range(0, 30).map((i) => {
   params.bot[bot.id] = {
     path: [],
     biomeMatrixSolid: biomeMatrixSolidBot,
-    pathfindingGrid: new pathfinding.Grid(biomeMatrixSolidBot),
+    maxLengthPath: 10,
   };
   bots.push(bot);
 });
@@ -189,13 +189,22 @@ const io = (httpServer) => {
         while (params.bot[bot.id].path.length === 0) {
           const endPositionBot = setRandomAvailablePoint({ ...bot });
           params.bot[bot.id].path = finder.findPath(
-            bot.x,
-            bot.y,
+            parseInt(bots[i].x),
+            parseInt(bots[i].y),
             endPositionBot.x,
             endPositionBot.y,
-            params.bot[bot.id].pathfindingGrid
+            new pathfinding.Grid(params.bot[bot.id].biomeMatrixSolid)
           );
         }
+        if (bot.vel < 1)
+          params.bot[bot.id].path = insertTransitionCoordinates(params.bot[bot.id].path, parseInt(1 / bot.vel));
+        else if (parseInt(bot.vel) > 1)
+          params.bot[bot.id].path = params.bot[bot.id].path
+            .map((point, i) => (i % parseInt(bot.vel) === 0 ? point : null))
+            .filter((point) => point !== null);
+
+        if (params.bot[bot.id].maxLengthPath && params.bot[bot.id].path.length > params.bot[bot.id].maxLengthPath)
+          params.bot[bot.id].path = params.bot[bot.id].path.slice(0, params.bot[bot.id].maxLengthPath);
       }
       bots[i].x = params.bot[bot.id].path[0][0];
       bots[i].y = params.bot[bot.id].path[0][1];

@@ -422,6 +422,37 @@ function objectEquals(x, y) {
     : x === y;
 }
 
+function insertTransitionCoordinates(coordinates, transitionFactor) {
+  // Create a new array to store the resulting coordinates
+  const coordinatesWithTransition = [];
+
+  // Iterate over the coordinates array
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    const [x1, y1] = coordinates[i];
+    const [x2, y2] = coordinates[i + 1];
+
+    // Add the initial integer coordinate to the new array
+    coordinatesWithTransition.push([x1, y1]);
+
+    // Calculate the increments for each coordinate
+    const incrementX = (x2 - x1) / transitionFactor;
+    const incrementY = (y2 - y1) / transitionFactor;
+
+    // Add the intermediate coordinates
+    for (let j = 1; j <= transitionFactor - 1; j++) {
+      const xIntermediate = x1 + incrementX * j;
+      const yIntermediate = y1 + incrementY * j;
+      coordinatesWithTransition.push([xIntermediate, yIntermediate]);
+    }
+  }
+
+  // Add the last integer coordinate to the new array
+  coordinatesWithTransition.push(coordinates[coordinates.length - 1]);
+
+  // Now, coordinatesWithTransition contains the coordinates with transition
+  return coordinatesWithTransition;
+}
+
 const commonFunctions = `
     const s4 = ${s4};
     const range = ${range};
@@ -456,6 +487,7 @@ const commonFunctions = `
     ${merge};
     ${objectEquals};
     ${getJoystickDirection};
+    ${insertTransitionCoordinates};
 `;
 
 export {
@@ -491,4 +523,5 @@ export {
   getJoystickDirection,
   floatFixed,
   getId,
+  insertTransitionCoordinates,
 };
