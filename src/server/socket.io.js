@@ -13,7 +13,7 @@ const types = ['user', 'bot'];
 const elements = {};
 types.map((type) => (elements[type] = []));
 
-const ioSSR = `
+const ioClientSRC = `
   const ioHost = ${JSONweb(ioHost)};
   const types = ${JSONweb(types)};
   const globalTimeEventInterval = ${globalTimeEventInterval};
@@ -232,4 +232,4 @@ const io = (httpServer) => {
   return ioServer;
 };
 
-export { io, ioSSR };
+export { io, ioClientSRC };

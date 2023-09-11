@@ -57,7 +57,7 @@ const setRandomAvailablePoint = (element, limitOptions) => {
   return element;
 };
 
-const biomeSSR = `
+const biomeClientSRC = `
     const matrixCells = ${matrixCells};
     const matrixCellsAmplitude = ${matrixCellsAmplitude};
     const matrixCellsPaintByCell = ${matrixCellsPaintByCell};
@@ -69,7 +69,7 @@ const biomeSSR = `
 `;
 
 export {
-  biomeSSR,
+  biomeClientSRC,
   biomeID,
   biomeMatrixSolid,
   biomeMatrixColor,

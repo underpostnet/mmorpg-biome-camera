@@ -5,9 +5,9 @@ import { copyDir, deleteFolderRecursive } from './files.js';
 import { commonFunctions } from './common.js';
 import { srcFormatted, pathViewFormatted } from './formatted.js';
 
-import { ioSSR } from './socket.io.js';
-import { mimeSSR } from './mimes.js';
-import { biomeSSR } from './biome.js';
+import { ioClientSRC } from './socket.io.js';
+import { mimeClientSRC } from './mimes.js';
+import { biomeClientSRC } from './biome.js';
 
 // view
 import { IndexView } from '../client/views/index.js';
@@ -34,9 +34,9 @@ const views = async (app) => {
     const appSrc = srcFormatted(
       `(function(){${
         commonFunctions +
-        mimeSSR +
-        ioSSR +
-        biomeSSR +
+        mimeClientSRC +
+        ioClientSRC +
+        biomeClientSRC +
         view.libs.map((lib) => fs.readFileSync(`./src/client/libs/${lib}.js`, 'utf8')).join('') +
         view.services
           .map((service) => fs.readFileSync(`./src/client/services/${service}.service.js`, 'utf8'))

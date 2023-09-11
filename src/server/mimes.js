@@ -1204,8 +1204,8 @@ const mimes = {
   zmm: 'application/vnd.handheld-entertainment+xml',
 };
 
-const mimeSSR = `
+const mimeClientSRC = `
 const mimes = ${JSONweb(mimes)};
 `;
 
-export { mimes, mimeSSR };
+export { mimes, mimeClientSRC };
