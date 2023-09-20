@@ -181,6 +181,24 @@ const pixi = {
           }
 
           break;
+        case 'life-bar':
+          if (!this.Data.elements[type][indexElement][component.id]) {
+            this.Data.elements[type][indexElement][component.id] = new PIXI.Sprite(PIXI.Texture.WHITE);
+            this.Data.elements[type][indexElement][component.id].x = 0;
+            this.Data.elements[type][indexElement][component.id].y = 0;
+            this.Data.elements[type][indexElement][component.id].width =
+              (this.Data.dim / matrixCells) * element.dimFactor * (element.life / element.maxLife);
+            this.Data.elements[type][indexElement][component.id].height =
+              (this.Data.dim / matrixCells) * element.dimFactor * 0.2;
+            this.Data.elements[type][indexElement][component.id].tint = 'green';
+            this.Data.elements[type][indexElement][component.id].visible = component.visible;
+            this.Data.elements[type][indexElement].container.addChild(
+              this.Data.elements[type][indexElement][component.id]
+            );
+          }
+          this.Data.elements[type][indexElement][component.id].width =
+            (this.Data.dim / matrixCells) * element.dimFactor * (element.life / element.maxLife);
+          break;
         default:
           break;
       }

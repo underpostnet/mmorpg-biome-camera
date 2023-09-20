@@ -3,7 +3,7 @@ import { JSONweb } from './formatted.js';
 import dotenv from 'dotenv';
 import { setRandomAvailablePoint, validateBiomeCollision, biomeMatrixSolid } from './biome.js';
 import pathfinding from 'pathfinding';
-import { getId, insertTransitionCoordinates, newInstance, range } from './common.js';
+import { getDistance, getId, insertTransitionCoordinates, newInstance, range, round10 } from './common.js';
 
 dotenv.config();
 
@@ -27,10 +27,12 @@ const params = {
 
 range(0, 30).map((i) => {
   const bot = setRandomAvailablePoint({
-    vel: 0.1,
+    vel: 0.2,
     dimFactor: 1,
     direction: 'down',
     status: 'new',
+    life: 50,
+    maxLife: 100,
     components: [
       {
         id: 'background',
@@ -56,6 +58,11 @@ range(0, 30).map((i) => {
         ],
         active: true,
       },
+      {
+        id: 'life-bar',
+        visible: true,
+        active: true,
+      },
     ],
     id: getId(bots, 'id', 'bot-'),
   });
@@ -71,9 +78,23 @@ range(0, 30).map((i) => {
     originX: newInstance(bot.x),
     originY: newInstance(bot.y),
     rangePositionSearch: 2,
+    searchTarget: true,
   };
   bots.push(bot);
 });
+
+const formattedPath = (type, element) => {
+  if (element.vel < 1)
+    params[type][element.id].path = insertTransitionCoordinates(
+      params[type][element.id].path,
+      round10(1 / element.vel)
+    );
+  else if (round10(element.vel) > 1)
+    params[type][element.id].path = params[type][element.id].path
+      .map((point, i) => (i % round10(element.vel) === 0 ? point : null))
+      .filter((point) => point !== null);
+  params[type][element.id].path = params[type][element.id].path.filter((p) => Array.isArray(p));
+};
 
 const io = (httpServer) => {
   const ioServer = new Server(httpServer, {
@@ -96,6 +117,12 @@ const io = (httpServer) => {
     },
   });
 
+  const finder = new pathfinding.AStarFinder({
+    allowDiagonal: true, // enable diagonal
+    dontCrossCorners: true, // corner of a solid
+    heuristic: pathfinding.Heuristic.chebyshev,
+  });
+
   ioServer.on('connection', (socket) => {
     // const headers = socket.handshake.headers;
     // const ip = socket.handshake.address;
@@ -106,6 +133,8 @@ const io = (httpServer) => {
       dimFactor: 1,
       direction: 'down',
       status: 'new',
+      life: 50,
+      maxLife: 100,
       components: [
         {
           id: 'background',
@@ -129,6 +158,11 @@ const io = (httpServer) => {
             },
             { sprites: { stop: { id: '08', frames: 0 }, mov: { id: '18', frames: 1 } }, directions: ['down'] },
           ],
+          active: true,
+        },
+        {
+          id: 'life-bar',
+          visible: true,
           active: true,
         },
       ],
@@ -179,15 +213,26 @@ const io = (httpServer) => {
     });
   });
 
-  const finder = new pathfinding.AStarFinder({
-    allowDiagonal: true, // enable diagonal
-    dontCrossCorners: true, // corner of a solid
-    heuristic: pathfinding.Heuristic.chebyshev,
-  });
-
   bots.map((bot, i) => {
     setInterval(() => {
-      if (params.bot[bot.id] && params.bot[bot.id].path.length === 0) {
+      elements['user'].map((user, iu) => {
+        if (getDistance(bots[i].x, bots[i].y, user.x, user.y) < 3 && params.bot[bot.id].searchTarget) {
+          params.bot[bot.id].searchTarget = false;
+          params.bot[bot.id].path = params.bot[bot.id].path = finder.findPath(
+            round10(bots[i].x),
+            round10(bots[i].y),
+            round10(user.x),
+            round10(user.y),
+            new pathfinding.Grid(params.bot[bot.id].biomeMatrixSolid)
+          );
+          formattedPath('bot', bot);
+          setTimeout(() => {
+            params.bot[bot.id].searchTarget = true;
+          }, globalTimeEventInterval * params.bot[bot.id].path.length * 0.8);
+        }
+      });
+
+      if (params.bot[bot.id].path.length === 0 && params.bot[bot.id].searchTarget) {
         while (params.bot[bot.id].path.length === 0) {
           const endPositionBot = setRandomAvailablePoint(
             { ...bot },
@@ -198,34 +243,31 @@ const io = (httpServer) => {
             }
           );
           params.bot[bot.id].path = finder.findPath(
-            parseInt(bots[i].x),
-            parseInt(bots[i].y),
+            round10(bots[i].x),
+            round10(bots[i].y),
             endPositionBot.x,
             endPositionBot.y,
             new pathfinding.Grid(params.bot[bot.id].biomeMatrixSolid)
           );
         }
-        if (bot.vel < 1)
-          params.bot[bot.id].path = insertTransitionCoordinates(params.bot[bot.id].path, parseInt(1 / bot.vel));
-        else if (parseInt(bot.vel) > 1)
-          params.bot[bot.id].path = params.bot[bot.id].path
-            .map((point, i) => (i % parseInt(bot.vel) === 0 ? point : null))
-            .filter((point) => point !== null);
+        formattedPath('bot', bot);
       }
-      bots[i].x = params.bot[bot.id].path[0][0];
-      bots[i].y = params.bot[bot.id].path[0][1];
-      clients.map((client) =>
-        client.emit(
-          'bot',
-          JSON.stringify({
-            status: 'update',
-            x: bots[i].x,
-            y: bots[i].y,
-            id: bots[i].id,
-          })
-        )
-      );
-      params.bot[bot.id].path.shift();
+      if (params.bot[bot.id].path[0]) {
+        bots[i].x = params.bot[bot.id].path[0][0];
+        bots[i].y = params.bot[bot.id].path[0][1];
+        clients.map((client) =>
+          client.emit(
+            'bot',
+            JSON.stringify({
+              status: 'update',
+              x: bots[i].x,
+              y: bots[i].y,
+              id: bots[i].id,
+            })
+          )
+        );
+        params.bot[bot.id].path.shift();
+      }
     }, globalTimeEventInterval);
   });
 

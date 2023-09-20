@@ -4,6 +4,7 @@ import { random, range } from './common.js';
 
 // city-99d4-96x3
 // forest-9e65-96x3
+// const biomeID = 'forest-2dae-16x3';
 const biomeID = 'city-99d4-96x3';
 const matrixCells = 16 * 6;
 const matrixCellsPaintByCell = 3;
