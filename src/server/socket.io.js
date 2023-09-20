@@ -24,46 +24,64 @@ const bots = [];
 const params = {
   bot: {},
 };
-
-range(0, 30).map((i) => {
-  const bot = setRandomAvailablePoint({
+const baseStats = (options) => {
+  return {
     vel: 0.2,
     dimFactor: 1,
     direction: 'down',
     status: 'new',
     life: 50,
     maxLife: 100,
-    components: [
-      {
-        id: 'background',
-        color: 'red',
-        active: false,
-        visible: true,
-      },
-      {
-        id: 'skins',
-        skin: 'purple',
-        frameInterval: 200,
-        positions: [
-          { sprites: { stop: { id: '02', frames: 0 }, mov: { id: '12', frames: 1 } }, directions: ['up'] },
-          {
-            sprites: { stop: { id: '04', frames: 0 }, mov: { id: '14', frames: 1 } },
-            directions: ['left', 'down-left', 'up-left'],
-          },
-          {
-            sprites: { stop: { id: '06', frames: 0 }, mov: { id: '16', frames: 1 } },
-            directions: ['right', 'down-right', 'up-right'],
-          },
-          { sprites: { stop: { id: '08', frames: 0 }, mov: { id: '18', frames: 1 } }, directions: ['down'] },
-        ],
-        active: true,
-      },
-      {
-        id: 'life-bar',
-        visible: true,
-        active: true,
-      },
-    ],
+    ...options,
+  };
+};
+
+const components = {
+  background: (options) => {
+    return {
+      id: 'background',
+      color: 'red',
+      visible: true,
+      active: false,
+      ...options,
+    };
+  },
+  skins: (options) => {
+    return {
+      id: 'skins',
+      skin: 'anon',
+      frameInterval: 200,
+      positions: [
+        { sprites: { stop: { id: '02', frames: 0 }, mov: { id: '12', frames: 1 } }, directions: ['up'] },
+        {
+          sprites: { stop: { id: '04', frames: 0 }, mov: { id: '14', frames: 1 } },
+          directions: ['left', 'down-left', 'up-left'],
+        },
+        {
+          sprites: { stop: { id: '06', frames: 0 }, mov: { id: '16', frames: 1 } },
+          directions: ['right', 'down-right', 'up-right'],
+        },
+        { sprites: { stop: { id: '08', frames: 0 }, mov: { id: '18', frames: 1 } }, directions: ['down'] },
+      ],
+      visible: true,
+      active: true,
+      ...options,
+    };
+  },
+  'life-bar': (options) => {
+    return {
+      id: 'life-bar',
+      visible: true,
+      active: true,
+      ...options,
+    };
+  },
+};
+
+range(0, 30).map((i) => {
+  const bot = setRandomAvailablePoint({
+    ...baseStats(),
+    components: [components['background'](), components['skins']({ skin: 'purple' }), components['life-bar']()],
     id: getId(bots, 'id', 'bot-'),
   });
   const biomeMatrixSolidBot = biomeMatrixSolid.map((vy, y) =>
@@ -129,42 +147,11 @@ const io = (httpServer) => {
     console.log(`socket.io | connection id: ${socket.id}`);
     const type = 'user';
     const user = setRandomAvailablePoint({
-      vel: 0.2,
-      dimFactor: 1,
-      direction: 'down',
-      status: 'new',
-      life: 50,
-      maxLife: 100,
+      ...baseStats(),
       components: [
-        {
-          id: 'background',
-          color: 'red',
-          active: false,
-          visible: true,
-        },
-        {
-          id: 'skins',
-          skin: 'eiri',
-          frameInterval: 200,
-          positions: [
-            { sprites: { stop: { id: '02', frames: 0 }, mov: { id: '12', frames: 1 } }, directions: ['up'] },
-            {
-              sprites: { stop: { id: '04', frames: 0 }, mov: { id: '14', frames: 1 } },
-              directions: ['left', 'down-left', 'up-left'],
-            },
-            {
-              sprites: { stop: { id: '06', frames: 0 }, mov: { id: '16', frames: 1 } },
-              directions: ['right', 'down-right', 'up-right'],
-            },
-            { sprites: { stop: { id: '08', frames: 0 }, mov: { id: '18', frames: 1 } }, directions: ['down'] },
-          ],
-          active: true,
-        },
-        {
-          id: 'life-bar',
-          visible: true,
-          active: true,
-        },
+        components['background']({ color: 'blue' }),
+        components['skins']({ skin: 'eiri' }),
+        components['life-bar'](),
       ],
       id: socket.id,
     });

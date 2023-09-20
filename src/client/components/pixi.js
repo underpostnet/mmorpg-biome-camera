@@ -147,7 +147,7 @@ const pixi = {
               let frame = 0;
               this.Data.elements[type][indexElement][
                 `/skins/${dataComponent.skin}/${dataPosition.sprites.mov.id}/${frame}.png`
-              ].visible = true;
+              ].visible = component.visible;
 
               let originX = newInstance(element.x);
               let originY = newInstance(element.y);
@@ -160,7 +160,7 @@ const pixi = {
                 frame++;
                 this.Data.elements[type][indexElement][
                   `/skins/${dataComponent.skin}/${dataPosition.sprites.mov.id}/${frame}.png`
-                ].visible = true;
+                ].visible = component.visible;
 
                 if (
                   socketIo.Data.elements[type][indexElement].x === originX &&
@@ -171,7 +171,7 @@ const pixi = {
                   clearSprites();
                   this.Data.elements[type][indexElement][
                     `/skins/${dataComponent.skin}/${dataPosition.sprites.stop.id}/0.png`
-                  ].visible = true;
+                  ].visible = component.visible;
                 } else {
                   originX = newInstance(socketIo.Data.elements[type][indexElement].x);
                   originY = newInstance(socketIo.Data.elements[type][indexElement].y);
@@ -186,8 +186,6 @@ const pixi = {
             this.Data.elements[type][indexElement][component.id] = new PIXI.Sprite(PIXI.Texture.WHITE);
             this.Data.elements[type][indexElement][component.id].x = 0;
             this.Data.elements[type][indexElement][component.id].y = 0;
-            this.Data.elements[type][indexElement][component.id].width =
-              (this.Data.dim / matrixCells) * element.dimFactor * (element.life / element.maxLife);
             this.Data.elements[type][indexElement][component.id].height =
               (this.Data.dim / matrixCells) * element.dimFactor * 0.2;
             this.Data.elements[type][indexElement][component.id].tint = 'green';
