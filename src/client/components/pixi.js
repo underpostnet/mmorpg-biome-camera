@@ -108,7 +108,7 @@ const pixi = {
               range(0, position.sprites[sprite].frames).map((frame) => {
                 const src = `/skins/${component.skin}/${position.sprites[sprite].id}/${frame}.png`;
                 if (!this.Data.elements[type][indexElement][src]) {
-                  console.warn('load sprite', src);
+                  // console.warn('load sprite', src);
                   this.Data.elements[type][indexElement][src] = PIXI.Sprite.from(src);
                   this.Data.elements[type][indexElement][src].x = 0;
                   this.Data.elements[type][indexElement][src].y = 0;
@@ -196,6 +196,25 @@ const pixi = {
           }
           this.Data.elements[type][indexElement][component.id].width =
             (this.Data.dim / matrixCells) * element.dimFactor * (element.life / element.maxLife);
+          break;
+        case 'skills':
+          const triggerSkills = {};
+          switch (component.skill) {
+            case 'red-stone':
+              if (!index.KeysController.StartValidator[component.skill]) {
+                triggerSkills[component.skill] = () => console.warn('red-stone q');
+                index.KeysController.StartValidator[component.skill] = () => true;
+                index.KeysController.Event[component.skill] = {
+                  Q: triggerSkills[component.skill],
+                  q: triggerSkills[component.skill],
+                };
+                index.KeysController.EndValidator[component.skill] = () => true;
+              }
+              break;
+
+            default:
+              break;
+          }
           break;
         default:
           break;

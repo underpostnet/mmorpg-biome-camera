@@ -101,59 +101,69 @@ const index = {
     Data: {
       activeKey: {},
     },
+    Event: {
+      'main-user': {
+        ArrowLeft: () => (socketIo.Data.elements.user[0].x -= socketIo.Data.elements.user[0].vel),
+        ArrowRight: () => (socketIo.Data.elements.user[0].x += socketIo.Data.elements.user[0].vel),
+        ArrowUp: () => (socketIo.Data.elements.user[0].y -= socketIo.Data.elements.user[0].vel),
+        ArrowDown: () => (socketIo.Data.elements.user[0].y += socketIo.Data.elements.user[0].vel),
+      },
+    },
+    StartValidator: {
+      'main-user': () =>
+        socketIo.Data.elements.user && socketIo.Data.elements.user[0]
+          ? newInstance(socketIo.Data.elements.user[0])
+          : false,
+    },
+    EndValidator: {
+      'main-user': (StartValidator) => {
+        if (socketIo.Data.elements.user[0].x < 0) socketIo.Data.elements.user[0].x = 0;
+        if (socketIo.Data.elements.user[0].y < 0) socketIo.Data.elements.user[0].y = 0;
+        if (socketIo.Data.elements.user[0].x > matrixCells - socketIo.Data.elements.user[0].dimFactor)
+          socketIo.Data.elements.user[0].x = matrixCells - socketIo.Data.elements.user[0].dimFactor;
+        if (socketIo.Data.elements.user[0].y > matrixCells - socketIo.Data.elements.user[0].dimFactor)
+          socketIo.Data.elements.user[0].y = matrixCells - socketIo.Data.elements.user[0].dimFactor;
+
+        if (!objectEquals(StartValidator, socketIo.Data.elements.user[0])) {
+          if (validateBiomeCollision(socketIo.Data.elements.user[0])) {
+            socketIo.Data.elements.user[0] = StartValidator;
+            return;
+          }
+
+          const direction = getJoystickDirection(
+            StartValidator.x,
+            StartValidator.y,
+            socketIo.Data.elements.user[0].x,
+            socketIo.Data.elements.user[0].y
+          );
+          socketIo.Data.elements.user[0].direction = direction;
+
+          pixi.update('user', socketIo.Data.elements.user[0], 0, direction);
+          grid.viewMatrixController();
+          socketIo.socket.emit(
+            'user',
+            JSON.stringify({
+              x: socketIo.Data.elements.user[0].x,
+              y: socketIo.Data.elements.user[0].y,
+              id: socketIo.Data.elements.user[0].id,
+              status: 'update',
+            })
+          );
+        }
+      },
+    },
     init: function () {
       window.onkeydown = (e) => (console.log('onkeydown', e.key), (this.Data.activeKey[e.key] = true));
       window.onkeyup = (e) => (console.log('onkeyup', e.key), delete this.Data.activeKey[e.key]);
       setInterval(() => {
-        if (socketIo.Data.elements.user && socketIo.Data.elements.user[0]) {
-          const originElement = newInstance(socketIo.Data.elements.user[0]);
-          if (this.Data.activeKey['ArrowLeft']) {
-            socketIo.Data.elements.user[0].x -= socketIo.Data.elements.user[0].vel;
-          }
-          if (this.Data.activeKey['ArrowRight']) {
-            socketIo.Data.elements.user[0].x += socketIo.Data.elements.user[0].vel;
-          }
-          if (this.Data.activeKey['ArrowUp']) {
-            socketIo.Data.elements.user[0].y -= socketIo.Data.elements.user[0].vel;
-          }
-          if (this.Data.activeKey['ArrowDown']) {
-            socketIo.Data.elements.user[0].y += socketIo.Data.elements.user[0].vel;
-          }
-
-          if (socketIo.Data.elements.user[0].x < 0) socketIo.Data.elements.user[0].x = 0;
-          if (socketIo.Data.elements.user[0].y < 0) socketIo.Data.elements.user[0].y = 0;
-          if (socketIo.Data.elements.user[0].x > matrixCells - socketIo.Data.elements.user[0].dimFactor)
-            socketIo.Data.elements.user[0].x = matrixCells - socketIo.Data.elements.user[0].dimFactor;
-          if (socketIo.Data.elements.user[0].y > matrixCells - socketIo.Data.elements.user[0].dimFactor)
-            socketIo.Data.elements.user[0].y = matrixCells - socketIo.Data.elements.user[0].dimFactor;
-
-          if (!objectEquals(originElement, socketIo.Data.elements.user[0])) {
-            if (validateBiomeCollision(socketIo.Data.elements.user[0])) {
-              socketIo.Data.elements.user[0] = originElement;
-              return;
-            }
-
-            const direction = getJoystickDirection(
-              originElement.x,
-              originElement.y,
-              socketIo.Data.elements.user[0].x,
-              socketIo.Data.elements.user[0].y
-            );
-            socketIo.Data.elements.user[0].direction = direction;
-
-            pixi.update('user', socketIo.Data.elements.user[0], 0, direction);
-            grid.viewMatrixController();
-            socketIo.socket.emit(
-              'user',
-              JSON.stringify({
-                x: socketIo.Data.elements.user[0].x,
-                y: socketIo.Data.elements.user[0].y,
-                id: socketIo.Data.elements.user[0].id,
-                status: 'update',
-              })
-            );
-          }
-        }
+        Object.keys(this.StartValidator).map((key) => {
+          const StartValidator = this.StartValidator[key]();
+          if (!StartValidator) return;
+          Object.keys(this.Data.activeKey).map((activeKey) =>
+            this.Event[key][activeKey] ? this.Event[key][activeKey]() : null
+          );
+          this.EndValidator[key](StartValidator);
+        });
       }, globalTimeEventInterval);
     },
   },

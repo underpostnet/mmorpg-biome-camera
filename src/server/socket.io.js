@@ -32,6 +32,7 @@ const baseStats = (options) => {
     status: 'new',
     life: 50,
     maxLife: 100,
+    effect: 20,
     ...options,
   };
 };
@@ -74,6 +75,22 @@ const components = {
       visible: true,
       active: true,
       ...options,
+    };
+  },
+  skills: (options) => {
+    return {
+      id: 'skills',
+      skill: 'red-stone',
+      frameInterval: 200,
+      positions: [
+        {
+          sprites: { stop: { id: '08', frames: 2 }, mov: { id: '08', frames: 2 } },
+          directions: ['left', 'down-left', 'up-left', 'right', 'down-right', 'up-right', 'down', 'up'],
+        },
+      ],
+      ...options,
+      visible: true,
+      active: true,
     };
   },
 };
@@ -152,6 +169,7 @@ const io = (httpServer) => {
         components['background']({ color: 'blue' }),
         components['skins']({ skin: 'eiri' }),
         components['life-bar'](),
+        components['skills'](),
       ],
       id: socket.id,
     });
