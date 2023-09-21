@@ -46,12 +46,14 @@ const socketIo = {
               this.Data.elements[type][indexElement].x !== element.x ||
               this.Data.elements[type][indexElement].y !== element.y
             ) {
-              const direction = getJoystickDirection(
-                this.Data.elements[type][indexElement].x,
-                this.Data.elements[type][indexElement].y,
-                element.x,
-                element.y
-              );
+              const direction = element.direction
+                ? element.direction
+                : getJoystickDirection(
+                    this.Data.elements[type][indexElement].x,
+                    this.Data.elements[type][indexElement].y,
+                    element.x,
+                    element.y
+                  );
               Object.keys(element).map((attr) => {
                 this.Data.elements[type][indexElement][attr] = element[attr];
               });

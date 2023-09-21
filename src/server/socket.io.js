@@ -11,7 +11,9 @@ const ioHost = `ws://localhost:${process.env.PORT}`;
 const globalTimeEventInterval = 25;
 const types = ['user', 'bot'];
 const elements = {};
-types.map((type) => (elements[type] = []));
+const params = {};
+
+types.map((type) => ((elements[type] = []), (params[type] = {})));
 
 const ioClientSRC = `
   const ioHost = ${JSONweb(ioHost)};
@@ -20,19 +22,21 @@ const ioClientSRC = `
         `;
 
 const clients = [];
-const bots = [];
-const params = {
-  bot: {},
+
+const Stats = {
+  life: 50,
+  // lifeRegeneration: 5,
+  // lifeRegenerationInterval: 500,
+  maxLife: 100,
+  vel: 0.2,
 };
+
 const baseStats = (options) => {
   return {
-    vel: 0.2,
     dimFactor: 1,
     direction: 'down',
     status: 'new',
-    life: 50,
-    maxLife: 100,
-    effect: 20,
+    ...Stats,
     ...options,
   };
 };
@@ -88,9 +92,9 @@ const components = {
           directions: ['left', 'down-left', 'up-left', 'right', 'down-right', 'up-right', 'down', 'up'],
         },
       ],
-      ...options,
       visible: true,
       active: true,
+      ...options,
     };
   },
 };
@@ -99,7 +103,7 @@ range(0, 30).map((i) => {
   const bot = setRandomAvailablePoint({
     ...baseStats(),
     components: [components['background'](), components['skins']({ skin: 'purple' }), components['life-bar']()],
-    id: getId(bots, 'id', 'bot-'),
+    id: getId(elements.bot, 'id', 'bot-'),
   });
   const biomeMatrixSolidBot = biomeMatrixSolid.map((vy, y) =>
     vy.map((vx, x) => {
@@ -115,7 +119,7 @@ range(0, 30).map((i) => {
     rangePositionSearch: 2,
     searchTarget: true,
   };
-  bots.push(bot);
+  elements.bot.push(bot);
 });
 
 const formattedPath = (type, element) => {
@@ -184,7 +188,7 @@ const io = (httpServer) => {
         socket.emit(type, JSON.stringify({ ...elements[type][i], status: 'new' }));
       }
     });
-    bots.map((bot, i) => socket.emit('bot', JSON.stringify(bot)));
+    elements.bot.map((bot, i) => socket.emit('bot', JSON.stringify(bot)));
 
     socket.on('disconnect', (reason) => {
       console.log(`socket.io | disconnect ${socket.id} due to reason: ${reason}`);
@@ -218,14 +222,14 @@ const io = (httpServer) => {
     });
   });
 
-  bots.map((bot, i) => {
+  elements.bot.map((bot, i) => {
     setInterval(() => {
       elements['user'].map((user, iu) => {
-        if (getDistance(bots[i].x, bots[i].y, user.x, user.y) < 3 && params.bot[bot.id].searchTarget) {
+        if (getDistance(elements.bot[i].x, elements.bot[i].y, user.x, user.y) < 3 && params.bot[bot.id].searchTarget) {
           params.bot[bot.id].searchTarget = false;
           params.bot[bot.id].path = params.bot[bot.id].path = finder.findPath(
-            round10(bots[i].x),
-            round10(bots[i].y),
+            round10(elements.bot[i].x),
+            round10(elements.bot[i].y),
             round10(user.x),
             round10(user.y),
             new pathfinding.Grid(params.bot[bot.id].biomeMatrixSolid)
@@ -248,8 +252,8 @@ const io = (httpServer) => {
             }
           );
           params.bot[bot.id].path = finder.findPath(
-            round10(bots[i].x),
-            round10(bots[i].y),
+            round10(elements.bot[i].x),
+            round10(elements.bot[i].y),
             endPositionBot.x,
             endPositionBot.y,
             new pathfinding.Grid(params.bot[bot.id].biomeMatrixSolid)
@@ -258,16 +262,16 @@ const io = (httpServer) => {
         formattedPath('bot', bot);
       }
       if (params.bot[bot.id].path[0]) {
-        bots[i].x = params.bot[bot.id].path[0][0];
-        bots[i].y = params.bot[bot.id].path[0][1];
+        elements.bot[i].x = params.bot[bot.id].path[0][0];
+        elements.bot[i].y = params.bot[bot.id].path[0][1];
         clients.map((client) =>
           client.emit(
             'bot',
             JSON.stringify({
               status: 'update',
-              x: bots[i].x,
-              y: bots[i].y,
-              id: bots[i].id,
+              x: elements.bot[i].x,
+              y: elements.bot[i].y,
+              id: elements.bot[i].id,
             })
           )
         );

@@ -146,6 +146,7 @@ const index = {
               x: socketIo.Data.elements.user[0].x,
               y: socketIo.Data.elements.user[0].y,
               id: socketIo.Data.elements.user[0].id,
+              direction,
               status: 'update',
             })
           );
