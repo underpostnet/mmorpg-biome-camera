@@ -110,11 +110,39 @@ const pixi = {
                 if (!this.Data.elements[type][indexElement][src]) {
                   // console.warn('load sprite', src);
                   this.Data.elements[type][indexElement][src] = PIXI.Sprite.from(src);
-                  this.Data.elements[type][indexElement][src].x = 0;
-                  this.Data.elements[type][indexElement][src].y = 0;
-                  this.Data.elements[type][indexElement][src].width = (this.Data.dim / matrixCells) * element.dimFactor;
-                  this.Data.elements[type][indexElement][src].height =
-                    (this.Data.dim / matrixCells) * element.dimFactor;
+
+                  switch (component.spriteType) {
+                    case 'skins':
+                      (() => {
+                        const _dim = (this.Data.dim / matrixCells) * element.dimFactor;
+                        this.Data.elements[type][indexElement][src].x = 0;
+                        this.Data.elements[type][indexElement][src].y = 0;
+                        this.Data.elements[type][indexElement][src].width = _dim;
+                        this.Data.elements[type][indexElement][src].height = _dim;
+                      })();
+                      break;
+
+                    default:
+                      break;
+                  }
+
+                  switch (component.spriteId) {
+                    case 'red-stone':
+                      (() => {
+                        const _dim = (this.Data.dim / matrixCells) * element.dimFactor;
+                        const _dimFactor = 0.5;
+                        const _dimReal = _dim * _dimFactor;
+                        this.Data.elements[type][indexElement][src].x = _dim / 2 - _dimReal / 2;
+                        this.Data.elements[type][indexElement][src].y = _dim / 2 - _dimReal / 2;
+                        this.Data.elements[type][indexElement][src].width = _dimReal;
+                        this.Data.elements[type][indexElement][src].height = _dimReal;
+                      })();
+                      break;
+
+                    default:
+                      break;
+                  }
+
                   this.Data.elements[type][indexElement][src].visible =
                     position.directions.includes(element.direction) && sprite === 'stop' && frame === 0;
                   this.Data.elements[type][indexElement].container.addChild(
