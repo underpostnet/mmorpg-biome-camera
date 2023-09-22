@@ -266,6 +266,10 @@ const pixi = {
                         'skills',
                         JSON.stringify({
                           skill: 'red-stone',
+                          caster: {
+                            type: 'user',
+                            id: socketIo.Data.elements.user[0].id,
+                          },
                           element: {
                             x: socketIo.Data.elements.user[0].x,
                             y: socketIo.Data.elements.user[0].y,

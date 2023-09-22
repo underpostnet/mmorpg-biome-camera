@@ -50,7 +50,7 @@ const baseStats = (options) => {
     dimFactor: 1,
     direction: 'down',
     status: 'new',
-    life: 50,
+    life: 100,
     lifeRegeneration: 5,
     lifeRegenerationInterval: 500,
     maxLife: 100,
@@ -306,17 +306,26 @@ const io = (httpServer) => {
           if (validateCollision(skillElement, bot)) {
             switch (skillData.skill) {
               case 'red-stone':
-                elements.bot[i].life -= 20;
-                clients.map((client) =>
-                  client.emit(
-                    'bot',
-                    JSON.stringify({
-                      life: elements.bot[i].life,
-                      id: elements.bot[i].id,
-                      status: 'update',
-                    })
-                  )
-                );
+                (() => {
+                  const _user = elements[skillEvent.caster.type].find((e) => e.id === skillEvent.caster.id);
+                  if (!_user) return;
+                  let _physicalDamage = _user.physicalDamage;
+                  _user.components.map((c) => {
+                    if (c.id === 'skills' && 'physicalDamage' in c.bonus) _physicalDamage += c.bonus.physicalDamage;
+                  });
+                  elements.bot[i].life -= _physicalDamage;
+                  if (elements.bot[i].life < 0) elements.bot[i].life = 0;
+                  clients.map((client) =>
+                    client.emit(
+                      'bot',
+                      JSON.stringify({
+                        life: elements.bot[i].life,
+                        id: elements.bot[i].id,
+                        status: 'update',
+                      })
+                    )
+                  );
+                })();
                 break;
 
               default:
