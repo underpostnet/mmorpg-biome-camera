@@ -144,7 +144,9 @@ const pixi = {
                   }
 
                   this.Data.elements[type][indexElement][src].visible =
-                    position.directions.includes(element.direction) && sprite === 'stop' && frame === 0;
+                    position.directions.includes(element.direction) && sprite === 'stop' && frame === 0
+                      ? component.visible
+                      : false;
                   this.Data.elements[type][indexElement].container.addChild(
                     this.Data.elements[type][indexElement][src]
                   );
@@ -154,14 +156,21 @@ const pixi = {
             });
           });
           if (direction) {
+            if (!component.visible) return;
+
             Object.keys(this.Intervals.elements[type][indexElement]).map((interval) => {
-              if (interval !== direction && this.Intervals.elements[type][indexElement][interval]) {
+              if (
+                interval !== `${component.spriteType}-${component.spriteId}-${direction}` &&
+                this.Intervals.elements[type][indexElement][interval]
+              ) {
                 clearInterval(this.Intervals.elements[type][indexElement][interval]);
                 delete this.Intervals.elements[type][indexElement][interval];
               }
             });
 
-            if (!this.Intervals.elements[type][indexElement][direction]) {
+            if (
+              !this.Intervals.elements[type][indexElement][`${component.spriteType}-${component.spriteId}-${direction}`]
+            ) {
               const clearSprites = () => {
                 this.Data.sprites[type][indexElement].map((src) => {
                   this.Data.elements[type][indexElement][src].visible = false;
@@ -170,7 +179,7 @@ const pixi = {
               clearSprites();
 
               const dataComponent = socketIo.Data.elements[type][indexElement].components.find(
-                (c) => c.id === 'sprites'
+                (c) => c.id === 'sprites' && c.spriteType === component.spriteType && c.spriteId === component.spriteId
               );
               const dataPosition = dataComponent.positions.find((c) => c.directions.includes(direction));
 
@@ -182,7 +191,10 @@ const pixi = {
               let originX = newInstance(element.x);
               let originY = newInstance(element.y);
 
-              this.Intervals.elements[type][indexElement][direction] = setInterval(() => {
+              this.Intervals.elements[type][indexElement][
+                `${component.spriteType}-${component.spriteId}-${direction}`
+              ] = setInterval(() => {
+                if (!this.Data.elements[type][indexElement]) return;
                 this.Data.elements[type][indexElement][
                   `/${component.spriteType}/${dataComponent.spriteId}/${dataPosition.sprites.mov.id}/${frame}.png`
                 ].visible = false;
@@ -196,16 +208,29 @@ const pixi = {
                   socketIo.Data.elements[type][indexElement].x === originX &&
                   socketIo.Data.elements[type][indexElement].y === originY
                 ) {
-                  if (this.Intervals.elements[type][indexElement][direction]) {
-                    clearInterval(this.Intervals.elements[type][indexElement][direction]);
-                    delete this.Intervals.elements[type][indexElement][direction];
+                  if (
+                    this.Intervals.elements[type][indexElement][
+                      `${component.spriteType}-${component.spriteId}-${direction}`
+                    ]
+                  ) {
+                    clearInterval(
+                      this.Intervals.elements[type][indexElement][
+                        `${component.spriteType}-${component.spriteId}-${direction}`
+                      ]
+                    );
+                    delete this.Intervals.elements[type][indexElement][
+                      `${component.spriteType}-${component.spriteId}-${direction}`
+                    ];
                   }
                   clearSprites();
                   frame = 0;
                   this.Data.elements[type][indexElement][
                     `/${component.spriteType}/${dataComponent.spriteId}/${dataPosition.sprites.stop.id}/${frame}.png`
                   ].visible = component.visible;
-                  this.Intervals.elements[type][indexElement][direction] = setInterval(() => {
+                  this.Intervals.elements[type][indexElement][
+                    `${component.spriteType}-${component.spriteId}-${direction}`
+                  ] = setInterval(() => {
+                    if (!this.Data.elements[type][indexElement]) return;
                     this.Data.elements[type][indexElement][
                       `/${component.spriteType}/${dataComponent.spriteId}/${dataPosition.sprites.stop.id}/${frame}.png`
                     ].visible = false;
@@ -219,9 +244,19 @@ const pixi = {
                       socketIo.Data.elements[type][indexElement].x !== originX &&
                       socketIo.Data.elements[type][indexElement].y !== originY
                     ) {
-                      if (this.Intervals.elements[type][indexElement][direction]) {
-                        clearInterval(this.Intervals.elements[type][indexElement][direction]);
-                        delete this.Intervals.elements[type][indexElement][direction];
+                      if (
+                        this.Intervals.elements[type][indexElement][
+                          `${component.spriteType}-${component.spriteId}-${direction}`
+                        ]
+                      ) {
+                        clearInterval(
+                          this.Intervals.elements[type][indexElement][
+                            `${component.spriteType}-${component.spriteId}-${direction}`
+                          ]
+                        );
+                        delete this.Intervals.elements[type][indexElement][
+                          `${component.spriteType}-${component.spriteId}-${direction}`
+                        ];
                       }
                       clearSprites();
                     }

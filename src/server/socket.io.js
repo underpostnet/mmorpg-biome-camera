@@ -58,10 +58,12 @@ const baseStats = (options) => {
     energyRegeneration: 5,
     energyRegenerationInterval: 500,
     maxEnergy: 100,
+    aggro: 10,
     vel: 0.2,
     level: 0,
     xp: 0,
     physicalDamage: 10,
+    deadTime: 3000,
     ...options,
   };
 };
@@ -149,7 +151,21 @@ const components = {
 range(0, 30).map((i) => {
   const bot = setRandomAvailablePoint(
     baseStats({
-      components: [components['background'](), components['sprites']({ spriteId: 'purple' }), components['life-bar']()],
+      components: [
+        components['background'](),
+        components['sprites']({ spriteId: 'purple' }),
+        components['sprites']({
+          spriteId: 'ghost',
+          positions: [
+            {
+              sprites: { stop: { id: '08', frames: 3 }, mov: { id: '08', frames: 3 } },
+              directions: ['left', 'down-left', 'up-left', 'right', 'down-right', 'up-right', 'down', 'up'],
+            },
+          ],
+          visible: false,
+        }),
+        components['life-bar'](),
+      ],
       id: getId(elements.bot, 'id', 'bot-'),
     })
   );
@@ -325,6 +341,21 @@ const io = (httpServer) => {
                       })
                     )
                   );
+                  if (elements.bot[i].life === 0) {
+                    setTimeout(() => {
+                      elements.bot[i].life = newInstance(elements.bot[i].maxLife);
+                      clients.map((client) =>
+                        client.emit(
+                          'bot',
+                          JSON.stringify({
+                            life: elements.bot[i].life,
+                            id: elements.bot[i].id,
+                            status: 'update',
+                          })
+                        )
+                      );
+                    }, elements.bot[i].deadTime);
+                  }
                 })();
                 break;
 

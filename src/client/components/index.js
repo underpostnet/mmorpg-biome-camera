@@ -153,8 +153,14 @@ const index = {
       },
     },
     init: function () {
-      window.onkeydown = (e) => (console.log('onkeydown', e.key), (this.Data.activeKey[e.key] = true));
-      window.onkeyup = (e) => (console.log('onkeyup', e.key), delete this.Data.activeKey[e.key]);
+      window.onkeydown = (e) => {
+        // console.log('onkeydown', e.key);
+        this.Data.activeKey[e.key] = true;
+      };
+      window.onkeyup = (e) => {
+        // console.log('onkeyup', e.key);
+        delete this.Data.activeKey[e.key];
+      };
       setInterval(() => {
         Object.keys(this.StartValidator).map((key) => {
           const StartValidator = this.StartValidator[key]();
