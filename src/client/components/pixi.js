@@ -265,7 +265,7 @@ const pixi = {
                       socketIo.socket.emit(
                         'skills',
                         JSON.stringify({
-                          id: 'red-stone',
+                          skill: 'red-stone',
                           element: {
                             x: socketIo.Data.elements.user[0].x,
                             y: socketIo.Data.elements.user[0].y,
@@ -275,7 +275,7 @@ const pixi = {
                       );
                       setTimeout(() => {
                         triggerVel[component.skill] = true;
-                      }, component.params.triggerVel);
+                      }, component.params.userVel);
                     }
                   };
                   index.KeysController.StartValidator[component.skill] = () => true;

@@ -1,7 +1,7 @@
 import { Server } from 'socket.io';
 import { JSONweb } from './formatted.js';
 import dotenv from 'dotenv';
-import { setRandomAvailablePoint, validateBiomeCollision, biomeMatrixSolid } from './biome.js';
+import { setRandomAvailablePoint, validateBiomeCollision, biomeMatrixSolid, matrixCellsPaintByCell } from './biome.js';
 import pathfinding from 'pathfinding';
 import { getDistance, getId, insertTransitionCoordinates, newInstance, range, round10 } from './common.js';
 
@@ -136,8 +136,8 @@ const components = {
       },
       params: {
         lifeTime: 500,
-        triggerVel: 200,
-        effectVel: 50,
+        userVel: 200,
+        triggerVel: 50,
       },
       visible: true,
       active: true,
@@ -181,6 +181,24 @@ const formattedPath = (type, element) => {
       .map((point, i) => (i % round10(element.vel) === 0 ? point : null))
       .filter((point) => point !== null);
   params[type][element.id].path = params[type][element.id].path.filter((p) => Array.isArray(p));
+};
+
+const validateCollision = (A, B) => {
+  for (const yA of range(0, A.dimFactor * matrixCellsPaintByCell - 1)) {
+    for (const xA of range(0, A.dimFactor * matrixCellsPaintByCell - 1)) {
+      for (const yB of range(0, B.dimFactor * matrixCellsPaintByCell - 1)) {
+        for (const xB of range(0, B.dimFactor * matrixCellsPaintByCell - 1)) {
+          if (
+            round10(A.x * matrixCellsPaintByCell) + xA === round10(B.x * matrixCellsPaintByCell) + xB &&
+            round10(A.y * matrixCellsPaintByCell) + yA === round10(B.y * matrixCellsPaintByCell) + yB
+          ) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
 };
 
 const io = (httpServer) => {
@@ -238,8 +256,8 @@ const io = (httpServer) => {
         socket.emit(type, JSON.stringify({ ...elements[type][i], status: 'new' }));
       }
     });
-    elements.bot.map((bot, i) => socket.emit('bot', JSON.stringify(bot)));
-    elements.skills.map((skills, i) => socket.emit('skills', JSON.stringify(skills)));
+    elements.bot.map((bot, i) => socket.emit('bot', JSON.stringify({ ...bot, status: 'new' })));
+    elements.skills.map((skills, i) => socket.emit('skills', JSON.stringify({ ...skills, status: 'new' })));
 
     socket.on('disconnect', (reason) => {
       console.log(`socket.io | disconnect ${socket.id} due to reason: ${reason}`);
@@ -274,7 +292,7 @@ const io = (httpServer) => {
 
     socket.on('skills', (...args) => {
       const skillEvent = JSON.parse(args);
-      const skillData = components['skills']({ id: skillEvent.id });
+      const skillData = components['skills']({ skill: skillEvent.skill });
       const skillElement = baseStats({
         ...skillData.element,
         ...skillEvent.element,
@@ -283,6 +301,31 @@ const io = (httpServer) => {
       // console.log('On skillElement', skillElement);
       elements['skills'].push(skillElement);
       clients.map((client) => client.emit('skills', JSON.stringify(skillElement)));
+      const triggerSkill = () => {
+        elements.bot.map((bot, i) => {
+          if (validateCollision(skillElement, bot)) {
+            switch (skillData.skill) {
+              case 'red-stone':
+                elements.bot[i].life -= 20;
+                clients.map((client) =>
+                  client.emit(
+                    'bot',
+                    JSON.stringify({
+                      life: elements.bot[i].life,
+                      id: elements.bot[i].id,
+                      status: 'update',
+                    })
+                  )
+                );
+                break;
+
+              default:
+                break;
+            }
+          }
+        });
+      };
+      triggerSkill();
       params['skills'][skillElement.id] = {
         velInterval: setInterval(() => {
           switch (skillElement.direction) {
@@ -324,9 +367,11 @@ const io = (httpServer) => {
             )
           );
         }, globalTimeEventInterval),
+        triggerInterval: setInterval(() => triggerSkill(), skillData.params.triggerVel),
       };
       setTimeout(() => {
         clearInterval(params['skills'][skillElement.id].velInterval);
+        clearInterval(params['skills'][skillElement.id].triggerInterval);
         delete params['skills'][skillElement.id];
         elements['skills'] = elements['skills'].filter((e) => e.id !== skillElement.id);
         clients.map((client) => client.emit('skills', JSON.stringify({ id: skillElement.id, status: 'disconnect' })));

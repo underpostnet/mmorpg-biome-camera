@@ -43,8 +43,10 @@ const socketIo = {
             break;
           case 'update':
             if (
-              this.Data.elements[type][indexElement].x !== element.x ||
-              this.Data.elements[type][indexElement].y !== element.y
+              'x' in element &&
+              'y' in element &&
+              (this.Data.elements[type][indexElement].x !== element.x ||
+                this.Data.elements[type][indexElement].y !== element.y)
             ) {
               const direction = element.direction
                 ? element.direction
@@ -54,11 +56,18 @@ const socketIo = {
                     element.x,
                     element.y
                   );
-              Object.keys(element).map((attr) => {
-                this.Data.elements[type][indexElement][attr] = element[attr];
-              });
+              this.Data.elements[type][indexElement].direction = direction;
+              this.Data.elements[type][indexElement].x = element.x;
+              this.Data.elements[type][indexElement].y = element.y;
               pixi.update(type, this.Data.elements[type][indexElement], indexElement, direction);
             }
+            if ('life' in element && this.Data.elements[type][indexElement].life !== element.life) {
+              this.Data.elements[type][indexElement].life = element.life;
+              pixi.update(type, this.Data.elements[type][indexElement], indexElement);
+            }
+            // Object.keys(element).map((attr) => {
+            //   this.Data.elements[type][indexElement][attr] = element[attr];
+            // });
             break;
           default:
             break;
