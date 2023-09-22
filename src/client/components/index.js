@@ -72,7 +72,6 @@ const index = {
   },
   ResponsiveController: {
     Data: {
-      Interval: 15,
       Responsive: {},
     },
     getResponsiveData: function () {
@@ -94,7 +93,7 @@ const index = {
         }
       };
       this.CallBack();
-      this.Interval = setInterval(() => this.CallBack(), this.Data.Interval);
+      this.Interval = setInterval(() => this.CallBack(), globalTimeEventInterval);
     },
   },
   KeysController: {

@@ -8,8 +8,8 @@ import { getDistance, getId, insertTransitionCoordinates, newInstance, range, ro
 dotenv.config();
 
 const ioHost = `ws://localhost:${process.env.PORT}`;
-const globalTimeEventInterval = 25;
-const types = ['user', 'bot'];
+const globalTimeEventInterval = 50;
+const types = ['user', 'bot', 'skills'];
 const elements = {};
 const params = {};
 
@@ -23,20 +23,45 @@ const ioClientSRC = `
 
 const clients = [];
 
-const Stats = {
-  life: 50,
-  // lifeRegeneration: 5,
-  // lifeRegenerationInterval: 500,
-  maxLife: 100,
-  vel: 0.2,
-};
+// Create arrays for levels and experience limits
+const levels = [];
+const experienceLimits = [];
+
+// Define the base experience and growth factor
+const baseExperience = 100; // You can adjust this value
+const growthFactor = 1.5; // You can adjust this value
+
+// Calculate the experience limits for levels 1 to 100
+range(1, 100).map((level) => {
+  // Calculate the experience required for the current level using an exponential formula
+  const experienceRequired = Math.floor(baseExperience * Math.pow(growthFactor, level - 1));
+
+  // Add the level and its corresponding experience limit to the arrays
+  levels.push(level);
+  experienceLimits.push(experienceRequired);
+});
+
+// Print the arrays to see the results
+// console.log('Levels:', levels);
+// console.log('Experience Limits:', experienceLimits);
 
 const baseStats = (options) => {
   return {
     dimFactor: 1,
     direction: 'down',
     status: 'new',
-    ...Stats,
+    life: 50,
+    lifeRegeneration: 5,
+    lifeRegenerationInterval: 500,
+    maxLife: 100,
+    energy: 50,
+    energyRegeneration: 5,
+    energyRegenerationInterval: 500,
+    maxEnergy: 100,
+    vel: 0.2,
+    level: 0,
+    xp: 0,
+    physicalDamage: 10,
     ...options,
   };
 };
@@ -51,10 +76,11 @@ const components = {
       ...options,
     };
   },
-  skins: (options) => {
+  sprites: (options) => {
     return {
-      id: 'skins',
-      skin: 'anon',
+      id: 'sprites',
+      spriteType: 'skins',
+      spriteId: 'anon',
       frameInterval: 200,
       positions: [
         { sprites: { stop: { id: '02', frames: 0 }, mov: { id: '12', frames: 1 } }, directions: ['up'] },
@@ -85,13 +111,34 @@ const components = {
     return {
       id: 'skills',
       skill: 'red-stone',
-      frameInterval: 200,
-      positions: [
-        {
-          sprites: { stop: { id: '08', frames: 2 }, mov: { id: '08', frames: 2 } },
-          directions: ['left', 'down-left', 'up-left', 'right', 'down-right', 'up-right', 'down', 'up'],
-        },
-      ],
+      costs: {
+        energy: 1,
+        level: 0,
+      },
+      element: {
+        vel: 0.5,
+        components: [
+          components['sprites']({
+            frameInterval: 200,
+            spriteType: 'skills',
+            spriteId: 'red-stone',
+            positions: [
+              {
+                sprites: { stop: { id: '08', frames: 2 }, mov: { id: '08', frames: 2 } },
+                directions: ['left', 'down-left', 'up-left', 'right', 'down-right', 'up-right', 'down', 'up'],
+              },
+            ],
+          }),
+        ],
+      },
+      bonus: {
+        physicalDamage: 5,
+      },
+      params: {
+        lifeTime: 500,
+        triggerVel: 200,
+        effectVel: 50,
+      },
       visible: true,
       active: true,
       ...options,
@@ -100,11 +147,12 @@ const components = {
 };
 
 range(0, 30).map((i) => {
-  const bot = setRandomAvailablePoint({
-    ...baseStats(),
-    components: [components['background'](), components['skins']({ skin: 'purple' }), components['life-bar']()],
-    id: getId(elements.bot, 'id', 'bot-'),
-  });
+  const bot = setRandomAvailablePoint(
+    baseStats({
+      components: [components['background'](), components['sprites']({ spriteId: 'purple' }), components['life-bar']()],
+      id: getId(elements.bot, 'id', 'bot-'),
+    })
+  );
   const biomeMatrixSolidBot = biomeMatrixSolid.map((vy, y) =>
     vy.map((vx, x) => {
       if (validateBiomeCollision({ ...bot, x, y })) return 1;
@@ -167,16 +215,18 @@ const io = (httpServer) => {
     // const ip = socket.handshake.address;
     console.log(`socket.io | connection id: ${socket.id}`);
     const type = 'user';
-    const user = setRandomAvailablePoint({
-      ...baseStats(),
-      components: [
-        components['background']({ color: 'blue' }),
-        components['skins']({ skin: 'eiri' }),
-        components['life-bar'](),
-        components['skills'](),
-      ],
-      id: socket.id,
-    });
+    const user = setRandomAvailablePoint(
+      baseStats({
+        components: [
+          components['background']({ color: 'blue' }),
+          components['sprites']({ spriteId: 'eiri' }),
+          components['life-bar'](),
+          components['skills'](),
+        ],
+        vel: 0.5,
+        id: socket.id,
+      })
+    );
     elements[type].push(user);
     clients.push(socket);
     const clientIndex = clients.indexOf(socket);
@@ -189,6 +239,7 @@ const io = (httpServer) => {
       }
     });
     elements.bot.map((bot, i) => socket.emit('bot', JSON.stringify(bot)));
+    elements.skills.map((skills, i) => socket.emit('skills', JSON.stringify(skills)));
 
     socket.on('disconnect', (reason) => {
       console.log(`socket.io | disconnect ${socket.id} due to reason: ${reason}`);
@@ -219,6 +270,67 @@ const io = (httpServer) => {
         default:
           break;
       }
+    });
+
+    socket.on('skills', (...args) => {
+      const skillEvent = JSON.parse(args);
+      const skillData = components['skills']({ id: skillEvent.id });
+      const skillElement = baseStats({
+        ...skillData.element,
+        ...skillEvent.element,
+        id: getId(elements.skills, 'id', `${skillEvent.id}-`),
+      });
+      // console.log('On skillElement', skillElement);
+      elements['skills'].push(skillElement);
+      clients.map((client) => client.emit('skills', JSON.stringify(skillElement)));
+      params['skills'][skillElement.id] = {
+        velInterval: setInterval(() => {
+          switch (skillElement.direction) {
+            case 'down':
+              skillElement.y += skillElement.vel;
+              break;
+            case 'up':
+              skillElement.y -= skillElement.vel;
+              break;
+            case 'left':
+              skillElement.x -= skillElement.vel;
+              break;
+            case 'down-left':
+              skillElement.y += skillElement.vel;
+              skillElement.x -= skillElement.vel;
+              break;
+            case 'up-left':
+              skillElement.y -= skillElement.vel;
+              skillElement.x -= skillElement.vel;
+              break;
+            case 'right':
+              skillElement.x += skillElement.vel;
+              break;
+            case 'down-right':
+              skillElement.y += skillElement.vel;
+              skillElement.x += skillElement.vel;
+              break;
+            case 'up-right':
+              skillElement.y -= skillElement.vel;
+              skillElement.x += skillElement.vel;
+              break;
+            default:
+              break;
+          }
+          clients.map((client) =>
+            client.emit(
+              'skills',
+              JSON.stringify({ x: skillElement.x, y: skillElement.y, id: skillElement.id, status: 'update' })
+            )
+          );
+        }, globalTimeEventInterval),
+      };
+      setTimeout(() => {
+        clearInterval(params['skills'][skillElement.id].velInterval);
+        delete params['skills'][skillElement.id];
+        elements['skills'] = elements['skills'].filter((e) => e.id !== skillElement.id);
+        clients.map((client) => client.emit('skills', JSON.stringify({ id: skillElement.id, status: 'disconnect' })));
+      }, skillData.params.lifeTime);
     });
   });
 

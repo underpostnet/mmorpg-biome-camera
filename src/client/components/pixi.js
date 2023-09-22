@@ -102,11 +102,11 @@ const pixi = {
             );
           }
           break;
-        case 'skins':
+        case 'sprites':
           component.positions.map((position) => {
             Object.keys(position.sprites).map((sprite) => {
               range(0, position.sprites[sprite].frames).map((frame) => {
-                const src = `/skins/${component.skin}/${position.sprites[sprite].id}/${frame}.png`;
+                const src = `/${component.spriteType}/${component.spriteId}/${position.sprites[sprite].id}/${frame}.png`;
                 if (!this.Data.elements[type][indexElement][src]) {
                   // console.warn('load sprite', src);
                   this.Data.elements[type][indexElement][src] = PIXI.Sprite.from(src);
@@ -141,12 +141,14 @@ const pixi = {
               };
               clearSprites();
 
-              const dataComponent = socketIo.Data.elements[type][indexElement].components.find((c) => c.id === 'skins');
+              const dataComponent = socketIo.Data.elements[type][indexElement].components.find(
+                (c) => c.id === 'sprites'
+              );
               const dataPosition = dataComponent.positions.find((c) => c.directions.includes(direction));
 
               let frame = 0;
               this.Data.elements[type][indexElement][
-                `/skins/${dataComponent.skin}/${dataPosition.sprites.mov.id}/${frame}.png`
+                `/${component.spriteType}/${dataComponent.spriteId}/${dataPosition.sprites.mov.id}/${frame}.png`
               ].visible = component.visible;
 
               let originX = newInstance(element.x);
@@ -154,24 +156,48 @@ const pixi = {
 
               this.Intervals.elements[type][indexElement][direction] = setInterval(() => {
                 this.Data.elements[type][indexElement][
-                  `/skins/${dataComponent.skin}/${dataPosition.sprites.mov.id}/${frame}.png`
+                  `/${component.spriteType}/${dataComponent.spriteId}/${dataPosition.sprites.mov.id}/${frame}.png`
                 ].visible = false;
-                if (frame === dataPosition.sprites.mov.frames) frame = -1;
+                if (frame >= dataPosition.sprites.mov.frames) frame = -1;
                 frame++;
                 this.Data.elements[type][indexElement][
-                  `/skins/${dataComponent.skin}/${dataPosition.sprites.mov.id}/${frame}.png`
+                  `/${component.spriteType}/${dataComponent.spriteId}/${dataPosition.sprites.mov.id}/${frame}.png`
                 ].visible = component.visible;
 
                 if (
                   socketIo.Data.elements[type][indexElement].x === originX &&
                   socketIo.Data.elements[type][indexElement].y === originY
                 ) {
-                  clearInterval(this.Intervals.elements[type][indexElement][direction]);
-                  delete this.Intervals.elements[type][indexElement][direction];
+                  if (this.Intervals.elements[type][indexElement][direction]) {
+                    clearInterval(this.Intervals.elements[type][indexElement][direction]);
+                    delete this.Intervals.elements[type][indexElement][direction];
+                  }
                   clearSprites();
+                  frame = 0;
                   this.Data.elements[type][indexElement][
-                    `/skins/${dataComponent.skin}/${dataPosition.sprites.stop.id}/0.png`
+                    `/${component.spriteType}/${dataComponent.spriteId}/${dataPosition.sprites.stop.id}/${frame}.png`
                   ].visible = component.visible;
+                  this.Intervals.elements[type][indexElement][direction] = setInterval(() => {
+                    this.Data.elements[type][indexElement][
+                      `/${component.spriteType}/${dataComponent.spriteId}/${dataPosition.sprites.stop.id}/${frame}.png`
+                    ].visible = false;
+                    if (frame >= dataPosition.sprites.stop.frames) frame = -1;
+                    frame++;
+                    this.Data.elements[type][indexElement][
+                      `/${component.spriteType}/${dataComponent.spriteId}/${dataPosition.sprites.stop.id}/${frame}.png`
+                    ].visible = component.visible;
+
+                    if (
+                      socketIo.Data.elements[type][indexElement].x !== originX &&
+                      socketIo.Data.elements[type][indexElement].y !== originY
+                    ) {
+                      if (this.Intervals.elements[type][indexElement][direction]) {
+                        clearInterval(this.Intervals.elements[type][indexElement][direction]);
+                        delete this.Intervals.elements[type][indexElement][direction];
+                      }
+                      clearSprites();
+                    }
+                  }, dataComponent.frameInterval);
                 } else {
                   originX = newInstance(socketIo.Data.elements[type][indexElement].x);
                   originY = newInstance(socketIo.Data.elements[type][indexElement].y);
@@ -198,22 +224,44 @@ const pixi = {
             (this.Data.dim / matrixCells) * element.dimFactor * (element.life / element.maxLife);
           break;
         case 'skills':
-          const triggerSkills = {};
-          switch (component.skill) {
-            case 'red-stone':
-              if (!index.KeysController.StartValidator[component.skill]) {
-                triggerSkills[component.skill] = () => console.warn('red-stone q');
-                index.KeysController.StartValidator[component.skill] = () => true;
-                index.KeysController.Event[component.skill] = {
-                  Q: triggerSkills[component.skill],
-                  q: triggerSkills[component.skill],
-                };
-                index.KeysController.EndValidator[component.skill] = () => true;
-              }
-              break;
+          if (indexElement === 0) {
+            const triggerSkills = {};
+            const triggerVel = {};
+            switch (component.skill) {
+              case 'red-stone':
+                if (!index.KeysController.StartValidator[component.skill]) {
+                  triggerVel[component.skill] = true;
+                  triggerSkills[component.skill] = () => {
+                    if (triggerVel[component.skill]) {
+                      triggerVel[component.skill] = false;
+                      socketIo.socket.emit(
+                        'skills',
+                        JSON.stringify({
+                          id: 'red-stone',
+                          element: {
+                            x: socketIo.Data.elements.user[0].x,
+                            y: socketIo.Data.elements.user[0].y,
+                            direction: socketIo.Data.elements.user[0].direction,
+                          },
+                        })
+                      );
+                      setTimeout(() => {
+                        triggerVel[component.skill] = true;
+                      }, component.params.triggerVel);
+                    }
+                  };
+                  index.KeysController.StartValidator[component.skill] = () => true;
+                  index.KeysController.Event[component.skill] = {
+                    Q: triggerSkills[component.skill],
+                    q: triggerSkills[component.skill],
+                  };
+                  index.KeysController.EndValidator[component.skill] = () => true;
+                }
+                break;
 
-            default:
-              break;
+              default:
+                break;
+            }
           }
           break;
         default:

@@ -38,7 +38,7 @@ const socketIo = {
             if (indexElement === -1) {
               this.Data.elements[type].push(element);
               indexElement = this.Data.elements[type].length - 1;
-              pixi.update(type, element, indexElement);
+              pixi.update(type, element, indexElement, element.direction);
             }
             break;
           case 'update':
