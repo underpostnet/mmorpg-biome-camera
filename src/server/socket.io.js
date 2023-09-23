@@ -246,7 +246,7 @@ const validateCollision = (A, B) => {
 };
 
 const Event = {
-  Skill: (skillEvent) => {
+  skills: (skillEvent) => {
     // const skillEvent = JSON.parse(args);
     const casterElementIndex = elements[skillEvent.caster.type].findIndex((e) => e.id === skillEvent.caster.id);
     if (
@@ -494,7 +494,7 @@ const io = (httpServer) => {
       }
     });
 
-    socket.on('skills', (...args) => Event.Skill(JSON.parse(args)));
+    ['skills'].map((eventType) => socket.on(eventType, (...args) => Event[eventType](JSON.parse(args))));
   });
 
   elements.bot.map((bot, i) => {
@@ -524,7 +524,7 @@ const io = (httpServer) => {
                   case 'red-stone':
                     params.bot[bot.id].triggerIntervals[component.skill] = setInterval(
                       () =>
-                        Event.Skill({
+                        Event.skills({
                           skill: 'red-stone',
                           caster: {
                             type: 'bot',
@@ -556,12 +556,14 @@ const io = (httpServer) => {
                     params.bot[bot.id].maxTargetDetectRange * 0.5
                 )
                   return endSearchTarget();
-                params.bot[bot.id].searchTarget = true;
-                Object.keys(params.bot[bot.id].triggerIntervals).map((key) =>
-                  clearInterval(params.bot[bot.id].triggerIntervals[key])
-                );
-                delete params.bot[bot.id].currentTarget.id;
-                delete params.bot[bot.id].currentTarget.type;
+                setTimeout(() => {
+                  params.bot[bot.id].searchTarget = true;
+                  Object.keys(params.bot[bot.id].triggerIntervals).map((key) =>
+                    clearInterval(params.bot[bot.id].triggerIntervals[key])
+                  );
+                  delete params.bot[bot.id].currentTarget.id;
+                  delete params.bot[bot.id].currentTarget.type;
+                });
               }, params.bot[bot.id].timeIntervalTargetCheck);
             };
             endSearchTarget();
