@@ -522,23 +522,38 @@ const io = (httpServer) => {
               if (component.id === 'skills') {
                 switch (component.skill) {
                   case 'red-stone':
-                    params.bot[bot.id].triggerIntervals[component.skill] = setInterval(
-                      () =>
-                        Event.skills({
-                          skill: 'red-stone',
-                          caster: {
-                            type: 'bot',
-                            id: bot.id,
-                            targets: ['user'],
-                          },
-                          element: {
-                            x: bot.x,
-                            y: bot.y,
-                            direction: bot.direction,
-                          },
-                        }),
-                      component.params.userVel
-                    );
+                    (() => {
+                      const skillOption = {
+                        skill: 'red-stone',
+                        caster: {
+                          type: 'bot',
+                          id: bot.id,
+                          targets: ['user'],
+                        },
+                      };
+                      if (params.bot[bot.id].triggerIntervals[component.skill])
+                        clearInterval(params.bot[bot.id].triggerIntervals[component.skill]);
+                      Event.skills({
+                        ...skillOption,
+                        element: {
+                          x: elements.bot[i].x,
+                          y: elements.bot[i].y,
+                          direction: elements.bot[i].direction,
+                        },
+                      });
+                      params.bot[bot.id].triggerIntervals[component.skill] = setInterval(
+                        () =>
+                          Event.skills({
+                            ...skillOption,
+                            element: {
+                              x: elements.bot[i].x,
+                              y: elements.bot[i].y,
+                              direction: elements.bot[i].direction,
+                            },
+                          }),
+                        component.params.userVel
+                      );
+                    })();
                     break;
 
                   default:
@@ -552,6 +567,7 @@ const io = (httpServer) => {
                 if (
                   userTarget &&
                   userTarget.life > 0 &&
+                  elements.bot[i].life > 0 &&
                   getDistance(elements.bot[i].x, elements.bot[i].y, userTarget.x, userTarget.y) <
                     params.bot[bot.id].maxTargetDetectRange * 0.5
                 )
