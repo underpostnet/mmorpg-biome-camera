@@ -138,7 +138,17 @@ const pixi = {
                         this.Data.elements[type][indexElement][src].height = _dimReal;
                       })();
                       break;
-
+                    case 'ghost':
+                      (() => {
+                        const _dim = (this.Data.dim / matrixCells) * element.dimFactor;
+                        const _dimFactor = 0.7;
+                        const _dimReal = _dim * _dimFactor;
+                        this.Data.elements[type][indexElement][src].x = _dim / 2 - _dimReal / 2;
+                        this.Data.elements[type][indexElement][src].y = 0;
+                        this.Data.elements[type][indexElement][src].width = _dimReal;
+                        this.Data.elements[type][indexElement][src].height = _dim;
+                      })();
+                      break;
                     default:
                       break;
                   }
@@ -181,7 +191,7 @@ const pixi = {
               const dataComponent = socketIo.Data.elements[type][indexElement].components.find(
                 (c) => c.id === 'sprites' && c.spriteType === component.spriteType && c.spriteId === component.spriteId
               );
-              const dataPosition = dataComponent.positions.find((c) => c.directions.includes(direction));
+              let dataPosition = dataComponent.positions.find((c) => c.directions.includes(direction));
 
               let frame = 0;
               this.Data.elements[type][indexElement][
@@ -198,6 +208,9 @@ const pixi = {
                 this.Data.elements[type][indexElement][
                   `/${component.spriteType}/${dataComponent.spriteId}/${dataPosition.sprites.mov.id}/${frame}.png`
                 ].visible = false;
+                dataPosition = dataComponent.positions.find((c) =>
+                  c.directions.includes(socketIo.Data.elements[type][indexElement].direction)
+                );
                 if (frame >= dataPosition.sprites.mov.frames) frame = -1;
                 frame++;
                 this.Data.elements[type][indexElement][
@@ -234,6 +247,9 @@ const pixi = {
                     this.Data.elements[type][indexElement][
                       `/${component.spriteType}/${dataComponent.spriteId}/${dataPosition.sprites.stop.id}/${frame}.png`
                     ].visible = false;
+                    dataPosition = dataComponent.positions.find((c) =>
+                      c.directions.includes(socketIo.Data.elements[type][indexElement].direction)
+                    );
                     if (frame >= dataPosition.sprites.stop.frames) frame = -1;
                     frame++;
                     this.Data.elements[type][indexElement][
@@ -295,6 +311,7 @@ const pixi = {
                 if (!index.KeysController.StartValidator[component.skill]) {
                   triggerVel[component.skill] = true;
                   triggerSkills[component.skill] = () => {
+                    if (socketIo.Data.elements.user[0].life === 0) return;
                     if (triggerVel[component.skill]) {
                       triggerVel[component.skill] = false;
                       socketIo.socket.emit(
@@ -304,6 +321,7 @@ const pixi = {
                           caster: {
                             type: 'user',
                             id: socketIo.Data.elements.user[0].id,
+                            targets: ['bot', 'user'],
                           },
                           element: {
                             x: socketIo.Data.elements.user[0].x,

@@ -83,21 +83,25 @@ const socketIo = {
             }
             break;
           case 'update':
+            const direction = element.direction
+              ? element.direction
+              : 'x' in element && 'y' in element
+              ? getJoystickDirection(
+                  this.Data.elements[type][indexElement].x,
+                  this.Data.elements[type][indexElement].y,
+                  element.x,
+                  element.y
+                )
+              : undefined;
+            if (direction && this.Data.elements[type][indexElement].direction !== direction)
+              this.Data.elements[type][indexElement].direction = direction;
+
             if (
               'x' in element &&
               'y' in element &&
               (this.Data.elements[type][indexElement].x !== element.x ||
                 this.Data.elements[type][indexElement].y !== element.y)
             ) {
-              const direction = element.direction
-                ? element.direction
-                : getJoystickDirection(
-                    this.Data.elements[type][indexElement].x,
-                    this.Data.elements[type][indexElement].y,
-                    element.x,
-                    element.y
-                  );
-              this.Data.elements[type][indexElement].direction = direction;
               this.Data.elements[type][indexElement].x = element.x;
               this.Data.elements[type][indexElement].y = element.y;
               pixi.update(type, this.Data.elements[type][indexElement], indexElement, direction);

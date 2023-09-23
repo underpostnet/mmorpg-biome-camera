@@ -3,7 +3,15 @@ import { JSONweb } from './formatted.js';
 import dotenv from 'dotenv';
 import { setRandomAvailablePoint, validateBiomeCollision, biomeMatrixSolid, matrixCellsPaintByCell } from './biome.js';
 import pathfinding from 'pathfinding';
-import { getDistance, getId, insertTransitionCoordinates, newInstance, range, round10 } from './common.js';
+import {
+  getDistance,
+  getId,
+  getJoystickDirection,
+  insertTransitionCoordinates,
+  newInstance,
+  range,
+  round10,
+} from './common.js';
 
 dotenv.config();
 
@@ -79,7 +87,7 @@ const components = {
     };
   },
   sprites: (options) => {
-    return {
+    const baseSprite = {
       id: 'sprites',
       spriteType: 'skins',
       spriteId: 'anon',
@@ -100,6 +108,21 @@ const components = {
       active: true,
       ...options,
     };
+    switch (options.spriteId) {
+      case 'ghost':
+        return {
+          ...baseSprite,
+          spriteId: 'ghost',
+          positions: [
+            {
+              sprites: { stop: { id: '08', frames: 3 }, mov: { id: '08', frames: 3 } },
+              directions: ['left', 'down-left', 'up-left', 'right', 'down-right', 'up-right', 'down', 'up'],
+            },
+          ],
+          visible: false,
+        };
+    }
+    return baseSprite;
   },
   'life-bar': (options) => {
     return {
@@ -154,17 +177,15 @@ range(0, 30).map((i) => {
       components: [
         components['background'](),
         components['sprites']({ spriteId: 'purple' }),
-        components['sprites']({
-          spriteId: 'ghost',
-          positions: [
-            {
-              sprites: { stop: { id: '08', frames: 3 }, mov: { id: '08', frames: 3 } },
-              directions: ['left', 'down-left', 'up-left', 'right', 'down-right', 'up-right', 'down', 'up'],
-            },
-          ],
-          visible: false,
-        }),
+        components['sprites']({ spriteId: 'ghost' }),
         components['life-bar'](),
+        components['skills']({
+          params: {
+            lifeTime: 500,
+            userVel: 600,
+            triggerVel: 50,
+          },
+        }),
       ],
       id: getId(elements.bot, 'id', 'bot-'),
     })
@@ -182,6 +203,13 @@ range(0, 30).map((i) => {
     originY: newInstance(bot.y),
     rangePositionSearch: 2,
     searchTarget: true,
+    maxTargetDetectRange: 5,
+    triggerIntervals: {},
+    timeIntervalTargetCheck: globalTimeEventInterval * 5,
+    currentTarget: {
+      type: undefined,
+      id: undefined,
+    },
   };
   elements.bot.push(bot);
 });
@@ -215,6 +243,165 @@ const validateCollision = (A, B) => {
     }
   }
   return false;
+};
+
+const Event = {
+  Skill: (skillEvent) => {
+    // const skillEvent = JSON.parse(args);
+    const casterElementIndex = elements[skillEvent.caster.type].findIndex((e) => e.id === skillEvent.caster.id);
+    if (
+      !elements[skillEvent.caster.type][casterElementIndex] ||
+      elements[skillEvent.caster.type][casterElementIndex].life === 0
+    )
+      return;
+    const skillData = components['skills']({ skill: skillEvent.skill });
+    const skillElement = baseStats({
+      ...skillData.element,
+      ...skillEvent.element,
+      id: getId(elements.skills, 'id', `${skillEvent.id}-`),
+    });
+    // console.log('On skillElement', skillElement);
+    elements['skills'].push(skillElement);
+    clients.map((client) => client.emit('skills', JSON.stringify(skillElement)));
+    if (
+      skillEvent.caster.type === 'bot' &&
+      params.bot[skillEvent.caster.id].currentTarget.id &&
+      params.bot[skillEvent.caster.id].currentTarget.type
+    ) {
+      const targeElement = elements[params.bot[skillEvent.caster.id].currentTarget.type].find(
+        (e) => e.id === params.bot[skillEvent.caster.id].currentTarget.id
+      );
+      if (targeElement) {
+        const directionSkill = getJoystickDirection(
+          elements[skillEvent.caster.type][casterElementIndex].x,
+          elements[skillEvent.caster.type][casterElementIndex].y,
+          targeElement.x,
+          targeElement.y
+        );
+        if (directionSkill !== elements[skillEvent.caster.type][casterElementIndex].direction) {
+          elements[skillEvent.caster.type][casterElementIndex].direction = directionSkill;
+          clients.map((client) =>
+            client.emit(
+              skillEvent.caster.type,
+              JSON.stringify({
+                id: skillEvent.caster.id,
+                direction: directionSkill,
+                status: 'update',
+              })
+            )
+          );
+        }
+      }
+    }
+    const triggerSkill = (targetType) => {
+      elements[targetType].map((element, i) => {
+        if (targetType === skillEvent.caster.type && element.id === skillEvent.caster.id) return;
+        if (validateCollision(skillElement, element)) {
+          if (skillEvent.caster.type === 'bot') {
+            params.bot[skillEvent.caster.id].currentTarget.id = elements[targetType][i].id;
+            params.bot[skillEvent.caster.id].currentTarget.type = `${targetType}`;
+          }
+          switch (skillData.skill) {
+            case 'red-stone':
+              (() => {
+                const _element = elements[skillEvent.caster.type].find((e) => e.id === skillEvent.caster.id);
+                if (!_element) return;
+                let _physicalDamage = _element.physicalDamage;
+                _element.components.map((c) => {
+                  if (c.id === 'skills' && 'physicalDamage' in c.bonus) _physicalDamage += c.bonus.physicalDamage;
+                });
+                elements[targetType][i].life -= _physicalDamage;
+                if (elements[targetType][i].life < 0) elements[targetType][i].life = 0;
+                clients.map((client) =>
+                  client.emit(
+                    targetType,
+                    JSON.stringify({
+                      life: elements[targetType][i].life,
+                      id: elements[targetType][i].id,
+                      status: 'update',
+                    })
+                  )
+                );
+                if (elements[targetType][i].life === 0) {
+                  setTimeout(() => {
+                    if (!elements[targetType][i]) return;
+                    elements[targetType][i].life = newInstance(elements[targetType][i].maxLife);
+                    clients.map((client) =>
+                      client.emit(
+                        targetType,
+                        JSON.stringify({
+                          life: elements[targetType][i].life,
+                          id: elements[targetType][i].id,
+                          status: 'update',
+                        })
+                      )
+                    );
+                  }, elements[targetType][i].deadTime);
+                }
+              })();
+              break;
+
+            default:
+              break;
+          }
+        }
+      });
+    };
+    skillEvent.caster.targets.map((targetType) => triggerSkill(targetType));
+    params['skills'][skillElement.id] = {
+      velInterval: setInterval(() => {
+        switch (skillElement.direction) {
+          case 'down':
+            skillElement.y += skillElement.vel;
+            break;
+          case 'up':
+            skillElement.y -= skillElement.vel;
+            break;
+          case 'left':
+            skillElement.x -= skillElement.vel;
+            break;
+          case 'down-left':
+            skillElement.y += skillElement.vel;
+            skillElement.x -= skillElement.vel;
+            break;
+          case 'up-left':
+            skillElement.y -= skillElement.vel;
+            skillElement.x -= skillElement.vel;
+            break;
+          case 'right':
+            skillElement.x += skillElement.vel;
+            break;
+          case 'down-right':
+            skillElement.y += skillElement.vel;
+            skillElement.x += skillElement.vel;
+            break;
+          case 'up-right':
+            skillElement.y -= skillElement.vel;
+            skillElement.x += skillElement.vel;
+            break;
+          default:
+            break;
+        }
+        clients.map((client) =>
+          client.emit(
+            'skills',
+            JSON.stringify({ x: skillElement.x, y: skillElement.y, id: skillElement.id, status: 'update' })
+          )
+        );
+      }, globalTimeEventInterval),
+      triggerInterval: setInterval(
+        () => skillEvent.caster.targets.map((targetType) => triggerSkill(targetType)),
+        skillData.params.triggerVel
+      ),
+    };
+    setTimeout(() => {
+      clearInterval(params['skills'][skillElement.id].velInterval);
+      clearInterval(params['skills'][skillElement.id].triggerInterval);
+      delete params['skills'][skillElement.id];
+      elements['skills'] = elements['skills'].filter((e) => e.id !== skillElement.id);
+      clients.map((client) => client.emit('skills', JSON.stringify({ id: skillElement.id, status: 'disconnect' })));
+    }, skillData.params.lifeTime);
+  },
 };
 
 const io = (httpServer) => {
@@ -254,6 +441,7 @@ const io = (httpServer) => {
         components: [
           components['background']({ color: 'blue' }),
           components['sprites']({ spriteId: 'eiri' }),
+          components['sprites']({ spriteId: 'ghost' }),
           components['life-bar'](),
           components['skills'](),
         ],
@@ -306,137 +494,79 @@ const io = (httpServer) => {
       }
     });
 
-    socket.on('skills', (...args) => {
-      const skillEvent = JSON.parse(args);
-      const skillData = components['skills']({ skill: skillEvent.skill });
-      const skillElement = baseStats({
-        ...skillData.element,
-        ...skillEvent.element,
-        id: getId(elements.skills, 'id', `${skillEvent.id}-`),
-      });
-      // console.log('On skillElement', skillElement);
-      elements['skills'].push(skillElement);
-      clients.map((client) => client.emit('skills', JSON.stringify(skillElement)));
-      const triggerSkill = () => {
-        elements.bot.map((bot, i) => {
-          if (validateCollision(skillElement, bot)) {
-            switch (skillData.skill) {
-              case 'red-stone':
-                (() => {
-                  const _user = elements[skillEvent.caster.type].find((e) => e.id === skillEvent.caster.id);
-                  if (!_user) return;
-                  let _physicalDamage = _user.physicalDamage;
-                  _user.components.map((c) => {
-                    if (c.id === 'skills' && 'physicalDamage' in c.bonus) _physicalDamage += c.bonus.physicalDamage;
-                  });
-                  elements.bot[i].life -= _physicalDamage;
-                  if (elements.bot[i].life < 0) elements.bot[i].life = 0;
-                  clients.map((client) =>
-                    client.emit(
-                      'bot',
-                      JSON.stringify({
-                        life: elements.bot[i].life,
-                        id: elements.bot[i].id,
-                        status: 'update',
-                      })
-                    )
-                  );
-                  if (elements.bot[i].life === 0) {
-                    setTimeout(() => {
-                      elements.bot[i].life = newInstance(elements.bot[i].maxLife);
-                      clients.map((client) =>
-                        client.emit(
-                          'bot',
-                          JSON.stringify({
-                            life: elements.bot[i].life,
-                            id: elements.bot[i].id,
-                            status: 'update',
-                          })
-                        )
-                      );
-                    }, elements.bot[i].deadTime);
-                  }
-                })();
-                break;
-
-              default:
-                break;
-            }
-          }
-        });
-      };
-      triggerSkill();
-      params['skills'][skillElement.id] = {
-        velInterval: setInterval(() => {
-          switch (skillElement.direction) {
-            case 'down':
-              skillElement.y += skillElement.vel;
-              break;
-            case 'up':
-              skillElement.y -= skillElement.vel;
-              break;
-            case 'left':
-              skillElement.x -= skillElement.vel;
-              break;
-            case 'down-left':
-              skillElement.y += skillElement.vel;
-              skillElement.x -= skillElement.vel;
-              break;
-            case 'up-left':
-              skillElement.y -= skillElement.vel;
-              skillElement.x -= skillElement.vel;
-              break;
-            case 'right':
-              skillElement.x += skillElement.vel;
-              break;
-            case 'down-right':
-              skillElement.y += skillElement.vel;
-              skillElement.x += skillElement.vel;
-              break;
-            case 'up-right':
-              skillElement.y -= skillElement.vel;
-              skillElement.x += skillElement.vel;
-              break;
-            default:
-              break;
-          }
-          clients.map((client) =>
-            client.emit(
-              'skills',
-              JSON.stringify({ x: skillElement.x, y: skillElement.y, id: skillElement.id, status: 'update' })
-            )
-          );
-        }, globalTimeEventInterval),
-        triggerInterval: setInterval(() => triggerSkill(), skillData.params.triggerVel),
-      };
-      setTimeout(() => {
-        clearInterval(params['skills'][skillElement.id].velInterval);
-        clearInterval(params['skills'][skillElement.id].triggerInterval);
-        delete params['skills'][skillElement.id];
-        elements['skills'] = elements['skills'].filter((e) => e.id !== skillElement.id);
-        clients.map((client) => client.emit('skills', JSON.stringify({ id: skillElement.id, status: 'disconnect' })));
-      }, skillData.params.lifeTime);
-    });
+    socket.on('skills', (...args) => Event.Skill(JSON.parse(args)));
   });
 
   elements.bot.map((bot, i) => {
     setInterval(() => {
-      elements['user'].map((user, iu) => {
-        if (getDistance(elements.bot[i].x, elements.bot[i].y, user.x, user.y) < 3 && params.bot[bot.id].searchTarget) {
-          params.bot[bot.id].searchTarget = false;
-          params.bot[bot.id].path = params.bot[bot.id].path = finder.findPath(
-            round10(elements.bot[i].x),
-            round10(elements.bot[i].y),
-            round10(user.x),
-            round10(user.y),
-            new pathfinding.Grid(params.bot[bot.id].biomeMatrixSolid)
-          );
-          formattedPath('bot', bot);
-          setTimeout(() => {
-            params.bot[bot.id].searchTarget = true;
-          }, globalTimeEventInterval * params.bot[bot.id].path.length * 0.8);
-        }
-      });
+      if (bot.life > 0)
+        elements['user'].map((user, iu) => {
+          if (user.life === 0) return;
+          let targetId;
+          if (
+            getDistance(elements.bot[i].x, elements.bot[i].y, user.x, user.y) <
+              params.bot[bot.id].maxTargetDetectRange &&
+            params.bot[bot.id].searchTarget
+          ) {
+            targetId = `${user.id}`;
+            params.bot[bot.id].searchTarget = false;
+            params.bot[bot.id].path = params.bot[bot.id].path = finder.findPath(
+              round10(elements.bot[i].x),
+              round10(elements.bot[i].y),
+              round10(user.x),
+              round10(user.y),
+              new pathfinding.Grid(params.bot[bot.id].biomeMatrixSolid)
+            );
+            formattedPath('bot', bot);
+            bot.components.map((component) => {
+              if (component.id === 'skills') {
+                switch (component.skill) {
+                  case 'red-stone':
+                    params.bot[bot.id].triggerIntervals[component.skill] = setInterval(
+                      () =>
+                        Event.Skill({
+                          skill: 'red-stone',
+                          caster: {
+                            type: 'bot',
+                            id: bot.id,
+                            targets: ['user'],
+                          },
+                          element: {
+                            x: bot.x,
+                            y: bot.y,
+                            direction: bot.direction,
+                          },
+                        }),
+                      component.params.userVel
+                    );
+                    break;
+
+                  default:
+                    break;
+                }
+              }
+            });
+            const endSearchTarget = () => {
+              setTimeout(() => {
+                const userTarget = elements.user.find((u) => u.id === targetId);
+                if (
+                  userTarget &&
+                  userTarget.life > 0 &&
+                  getDistance(elements.bot[i].x, elements.bot[i].y, userTarget.x, userTarget.y) <
+                    params.bot[bot.id].maxTargetDetectRange * 0.5
+                )
+                  return endSearchTarget();
+                params.bot[bot.id].searchTarget = true;
+                Object.keys(params.bot[bot.id].triggerIntervals).map((key) =>
+                  clearInterval(params.bot[bot.id].triggerIntervals[key])
+                );
+                delete params.bot[bot.id].currentTarget.id;
+                delete params.bot[bot.id].currentTarget.type;
+              }, params.bot[bot.id].timeIntervalTargetCheck);
+            };
+            endSearchTarget();
+          }
+        });
 
       if (params.bot[bot.id].path.length === 0 && params.bot[bot.id].searchTarget) {
         while (params.bot[bot.id].path.length === 0) {
@@ -459,6 +589,12 @@ const io = (httpServer) => {
         formattedPath('bot', bot);
       }
       if (params.bot[bot.id].path[0]) {
+        elements.bot[i].direction = getJoystickDirection(
+          elements.bot[i].x,
+          elements.bot[i].y,
+          params.bot[bot.id].path[0][0],
+          params.bot[bot.id].path[0][1]
+        );
         elements.bot[i].x = params.bot[bot.id].path[0][0];
         elements.bot[i].y = params.bot[bot.id].path[0][1];
         clients.map((client) =>
