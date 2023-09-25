@@ -171,8 +171,10 @@ const components = {
   },
 };
 
-range(0, 30).map((i) => {
-  const bot = setRandomAvailablePoint(
+const factories = {};
+
+factories.bot = () =>
+  setRandomAvailablePoint(
     baseStats({
       components: [
         components['background'](),
@@ -190,6 +192,33 @@ range(0, 30).map((i) => {
       id: getId(elements.bot, 'id', 'bot-'),
     })
   );
+
+factories.user = (options) =>
+  setRandomAvailablePoint(
+    baseStats({
+      components: [
+        components['background']({ color: 'blue' }),
+        components['sprites']({ spriteId: 'eiri' }),
+        components['sprites']({ spriteId: 'ghost' }),
+        components['life-bar'](),
+        components['skills'](),
+      ],
+      vel: 0.5,
+      id: options.id,
+    })
+  );
+
+factories.skills = (options) => {
+  const { skillData, skillEvent } = options;
+  return baseStats({
+    ...skillData.element,
+    ...skillEvent.element,
+    id: getId(elements.skills, 'id', `${skillEvent.id}-`),
+  });
+};
+
+range(0, 30).map((i) => {
+  const bot = factories.bot();
   const biomeMatrixSolidBot = biomeMatrixSolid.map((vy, y) =>
     vy.map((vx, x) => {
       if (validateBiomeCollision({ ...bot, x, y })) return 1;
@@ -255,10 +284,9 @@ const Event = {
     )
       return;
     const skillData = components['skills']({ skill: skillEvent.skill });
-    const skillElement = baseStats({
-      ...skillData.element,
-      ...skillEvent.element,
-      id: getId(elements.skills, 'id', `${skillEvent.id}-`),
+    const skillElement = factories.skills({
+      skillData,
+      skillEvent,
     });
     // console.log('On skillElement', skillElement);
     elements['skills'].push(skillElement);
@@ -436,19 +464,7 @@ const io = (httpServer) => {
     // const ip = socket.handshake.address;
     console.log(`socket.io | connection id: ${socket.id}`);
     const type = 'user';
-    const user = setRandomAvailablePoint(
-      baseStats({
-        components: [
-          components['background']({ color: 'blue' }),
-          components['sprites']({ spriteId: 'eiri' }),
-          components['sprites']({ spriteId: 'ghost' }),
-          components['life-bar'](),
-          components['skills'](),
-        ],
-        vel: 0.5,
-        id: socket.id,
-      })
-    );
+    const user = factories.user(socket);
     elements[type].push(user);
     clients.push(socket);
     const clientIndex = clients.indexOf(socket);
