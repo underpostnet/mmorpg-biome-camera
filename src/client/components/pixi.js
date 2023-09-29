@@ -171,7 +171,9 @@ const pixi = {
             Object.keys(this.Intervals.elements[type][indexElement]).map((interval) => {
               if (
                 interval !== `${component.spriteType}-${component.spriteId}-${direction}` &&
-                this.Intervals.elements[type][indexElement][interval]
+                this.Intervals.elements[type][indexElement][interval] &&
+                interval.split('-')[0] === component.spriteType &&
+                interval.split('-')[1] === component.spriteId
               ) {
                 clearInterval(this.Intervals.elements[type][indexElement][interval]);
                 delete this.Intervals.elements[type][indexElement][interval];
@@ -301,6 +303,70 @@ const pixi = {
           }
           this.Data.elements[type][indexElement][component.id].width =
             (this.Data.dim / matrixCells) * element.dimFactor * (element.life / element.maxLife);
+          break;
+        case 'life-diff-indicator':
+          (() => {
+            if (!(component.id in this.Intervals.elements[type][indexElement])) {
+              const _dim = (this.Data.dim / matrixCells) * element.dimFactor;
+              // const _dimFactor = 0.5;
+              // const _dimReal = _dim * _dimFactor;
+              const padding = 8;
+
+              let lastLife = newInstance(element.life);
+              this.Intervals.elements[type][indexElement][component.id] = setInterval(() => {
+                if (this.Data.elements[type][indexElement][`container-${component.id}`])
+                  this.Data.elements[type][indexElement][`container-${component.id}`].destroy();
+
+                let diffLife = socketIo.Data.elements[type][indexElement].life - lastLife;
+                lastLife = newInstance(socketIo.Data.elements[type][indexElement].life);
+                if (diffLife === 0) return;
+                if (diffLife > 0) diffLife = '+' + diffLife;
+                diffLife = diffLife + ' ♥';
+                this.Data.elements[type][indexElement][`text-${component.id}`] = new PIXI.Text(`${diffLife}`, {
+                  fill: diffLife[0] !== '+' ? '#FE2712' : '#7FFF00',
+                  fontFamily: 'retro-font', // Impact
+                  fontSize: 60 * (1 / matrixCellsAmplitude),
+                });
+
+                this.Data.elements[type][indexElement][`background-${component.id}`] = new PIXI.Sprite(
+                  PIXI.Texture.WHITE
+                );
+                this.Data.elements[type][indexElement][`background-${component.id}`].x = (-1 * _dim) / padding;
+                this.Data.elements[type][indexElement][`background-${component.id}`].y = (-1 * _dim) / padding;
+                this.Data.elements[type][indexElement][`background-${component.id}`].width =
+                  (_dim / 3) * `${diffLife}`.length + _dim / padding + 10;
+                this.Data.elements[type][indexElement][`background-${component.id}`].height = _dim / 4 + _dim / padding;
+                this.Data.elements[type][indexElement][`background-${component.id}`].tint = 'black';
+
+                this.Data.elements[type][indexElement][`container-${component.id}`] = new PIXI.Container();
+                this.Data.elements[type][indexElement][`container-${component.id}`].x = random(
+                  -1 * parseInt(_dim * 0.2),
+                  1 * parseInt(_dim * 1.2)
+                );
+                this.Data.elements[type][indexElement][`container-${component.id}`].y = random(
+                  -1 * parseInt(_dim * 0.2),
+                  1 * parseInt(_dim * 1.2)
+                );
+                this.Data.elements[type][indexElement][`container-${component.id}`].width = _dim;
+                this.Data.elements[type][indexElement][`container-${component.id}`].height = _dim / 5;
+
+                this.Data.elements[type][indexElement][`container-${component.id}`].addChild(
+                  this.Data.elements[type][indexElement][`background-${component.id}`]
+                );
+                this.Data.elements[type][indexElement][`container-${component.id}`].addChild(
+                  this.Data.elements[type][indexElement][`text-${component.id}`]
+                );
+                this.Data.elements[type][indexElement].container.addChild(
+                  this.Data.elements[type][indexElement][`container-${component.id}`]
+                );
+                // this.Data.elements[type][indexElement][`container-${component.id}`].visible = true;
+                setTimeout(() => {
+                  if (this.Data.elements[type][indexElement][`container-${component.id}`])
+                    this.Data.elements[type][indexElement][`container-${component.id}`].visible = false;
+                }, 800 * 0.8);
+              }, 800);
+            }
+          })();
           break;
         case 'skills':
           if (indexElement === 0) {

@@ -1,18 +1,29 @@
 import { JSONweb } from './formatted.js';
 import fs from 'fs';
 import { random, range } from './common.js';
+import dotenv from 'dotenv';
 
-// city-99d4-96x3
-// forest-9e65-96x3
-// const biomeID = 'forest-2dae-16x3';
-const biomeID = 'city-99d4-96x3';
-const matrixCells = 16 * 6;
-const matrixCellsPaintByCell = 3;
-const matrixCellsAmplitude = 6;
+dotenv.config();
 
-// const matrixCells = 16;
-// const matrixCellsPaintByCell = 3;
-// const matrixCellsAmplitude = 2;
+const biomes = {
+  forest: {
+    biomeID: 'forest-2dae-16x3',
+    matrixCells: 16 * 1,
+    matrixCellsPaintByCell: 3,
+    matrixCellsAmplitude: 1,
+    biomeTotalBots: 1,
+  },
+  city: {
+    biomeID: 'city-99d4-96x3',
+    matrixCells: 16 * 6,
+    matrixCellsPaintByCell: 3,
+    matrixCellsAmplitude: 6,
+    biomeTotalBots: 30,
+  },
+};
+
+const { biomeID, matrixCells, matrixCellsPaintByCell, matrixCellsAmplitude, biomeTotalBots } =
+  biomes[process.env.BIOME];
 
 const biomeMatrixSolid = JSON.parse(
   fs.readFileSync(`./src/client/public/biomes/${biomeID.split('-')[0]}/${biomeID}/${biomeID}.solid.json`, 'utf8')
@@ -74,6 +85,7 @@ export {
   biomeID,
   biomeMatrixSolid,
   biomeMatrixColor,
+  biomeTotalBots,
   matrixCells,
   matrixCellsAmplitude,
   matrixCellsPaintByCell,

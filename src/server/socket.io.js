@@ -1,7 +1,13 @@
 import { Server } from 'socket.io';
 import { JSONweb } from './formatted.js';
 import dotenv from 'dotenv';
-import { setRandomAvailablePoint, validateBiomeCollision, biomeMatrixSolid, matrixCellsPaintByCell } from './biome.js';
+import {
+  setRandomAvailablePoint,
+  validateBiomeCollision,
+  biomeMatrixSolid,
+  matrixCellsPaintByCell,
+  biomeTotalBots,
+} from './biome.js';
 import pathfinding from 'pathfinding';
 import {
   getDistance,
@@ -169,6 +175,14 @@ const components = {
       ...options,
     };
   },
+  'life-diff-indicator': (options) => {
+    return {
+      id: 'life-diff-indicator',
+      visible: true,
+      active: true,
+      ...options,
+    };
+  },
 };
 
 const factories = {};
@@ -188,6 +202,7 @@ factories.bot = () =>
             triggerVel: 50,
           },
         }),
+        components['life-diff-indicator'](),
       ],
       id: getId(elements.bot, 'id', 'bot-'),
     })
@@ -202,7 +217,10 @@ factories.user = (options) =>
         components['sprites']({ spriteId: 'ghost' }),
         components['life-bar'](),
         components['skills'](),
+        components['life-diff-indicator'](),
       ],
+      life: 2000,
+      maxLife: 2000,
       vel: 0.5,
       id: options.id,
     })
@@ -217,7 +235,7 @@ factories.skills = (options) => {
   });
 };
 
-range(0, 30).map((i) => {
+range(0, biomeTotalBots - 1).map((i) => {
   const bot = factories.bot();
   const biomeMatrixSolidBot = biomeMatrixSolid.map((vy, y) =>
     vy.map((vx, x) => {
@@ -234,6 +252,7 @@ range(0, 30).map((i) => {
     searchTarget: true,
     maxTargetDetectRange: 5,
     triggerIntervals: {},
+    triggerIntervalsInit: {},
     timeIntervalTargetCheck: globalTimeEventInterval * 5,
     currentTarget: {
       type: undefined,
@@ -547,18 +566,8 @@ const io = (httpServer) => {
                           targets: ['user'],
                         },
                       };
-                      if (params.bot[bot.id].triggerIntervals[component.skill])
-                        clearInterval(params.bot[bot.id].triggerIntervals[component.skill]);
-                      Event.skills({
-                        ...skillOption,
-                        element: {
-                          x: elements.bot[i].x,
-                          y: elements.bot[i].y,
-                          direction: elements.bot[i].direction,
-                        },
-                      });
-                      params.bot[bot.id].triggerIntervals[component.skill] = setInterval(
-                        () =>
+                      params.bot[bot.id].triggerIntervalsInit[component.skill] = () => {
+                        if (!params.bot[bot.id].triggerIntervals[component.skill]) {
                           Event.skills({
                             ...skillOption,
                             element: {
@@ -566,9 +575,21 @@ const io = (httpServer) => {
                               y: elements.bot[i].y,
                               direction: elements.bot[i].direction,
                             },
-                          }),
-                        component.params.userVel
-                      );
+                          });
+                          params.bot[bot.id].triggerIntervals[component.skill] = setInterval(
+                            () =>
+                              Event.skills({
+                                ...skillOption,
+                                element: {
+                                  x: elements.bot[i].x,
+                                  y: elements.bot[i].y,
+                                  direction: elements.bot[i].direction,
+                                },
+                              }),
+                            component.params.userVel
+                          );
+                        }
+                      };
                     })();
                     break;
 
@@ -586,13 +607,18 @@ const io = (httpServer) => {
                   elements.bot[i].life > 0 &&
                   getDistance(elements.bot[i].x, elements.bot[i].y, userTarget.x, userTarget.y) <
                     params.bot[bot.id].maxTargetDetectRange * 0.5
-                )
+                ) {
+                  Object.keys(params.bot[bot.id].triggerIntervalsInit).map((key) =>
+                    params.bot[bot.id].triggerIntervalsInit[key]()
+                  );
                   return endSearchTarget();
+                }
                 setTimeout(() => {
                   params.bot[bot.id].searchTarget = true;
-                  Object.keys(params.bot[bot.id].triggerIntervals).map((key) =>
-                    clearInterval(params.bot[bot.id].triggerIntervals[key])
-                  );
+                  Object.keys(params.bot[bot.id].triggerIntervals).map((key) => {
+                    clearInterval(params.bot[bot.id].triggerIntervals[key]);
+                    delete params.bot[bot.id].triggerIntervals[key];
+                  });
                   delete params.bot[bot.id].currentTarget.id;
                   delete params.bot[bot.id].currentTarget.type;
                 });
