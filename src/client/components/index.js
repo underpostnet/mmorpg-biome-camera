@@ -55,12 +55,12 @@ const index = {
             height: 30px;
           }
         </style>
-        <menu class="abs"></menu>
-        <div class="fix center global-loading-content" style="display: none">
+        <menu class="abs" style="display: none"></menu>
+        <div class="fix center global-loading-content">
           <div class="abs center">
             LOADING
             <br />
-            <img class="inl global-loading-img" src="/gifts/points-loading.gif" />
+            <img class="inl global-loading-img" src="/custom/points-loading.gif" />
           </div>
         </div>
       `
@@ -68,6 +68,10 @@ const index = {
     setTimeout(() => {
       this.ResponsiveController.init();
       this.KeysController.init();
+      setTimeout(() => {
+        s('.global-loading-content').style.display = 'none';
+        s('menu').style.display = null;
+      }, 1000);
     });
   },
   ResponsiveController: {
